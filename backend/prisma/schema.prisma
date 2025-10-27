@@ -30,8 +30,6 @@ model Patient {
   deletedAt DateTime?
   post Post[]
   appointment Appointment[]
-  record Record @relation(fields: [recordId], references: [recordId])
-  recordId String @unique
 }
 
 model Post {
@@ -45,12 +43,6 @@ model Post {
   patientId Int
 }
 
-model Record {        // Todo: fix relation Patient x Record x Appointment
-  recordId String @id @default(uuid())
-  patient Patient?
-  appointment Appointment[]
-}
-
 model Appointment {
   appointmentId String @id @default(uuid())
   name String
@@ -59,7 +51,5 @@ model Appointment {
   endsAt DateTime
   patient Patient @relation(fields: [patientId], references: [patientId])
   patientId Int
-  record Record @relation(fields: [recordId], references: [recordId])
-  recordId String
 }
 

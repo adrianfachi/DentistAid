@@ -1,16 +1,16 @@
 import { Contact } from "../value_objects/contact.vo";
 import { Credentials } from "../value_objects/credentials.vo";
-import { MedicalInfo } from "../value_objects/medicalinfo.vo";
+import { MedicalInfo } from "../value_objects/medical-info.vo";
 import { Personal } from "../value_objects/personal.vo";
 
 
 export class Patient {
     constructor(
-        public recordId: string,
-        public credentials: Credentials,
-        public personalInfo: Personal,
-        public medicalInfo: MedicalInfo,
-        public contact: Contact
+        public readonly recordId: string,
+        private credentials: Credentials,
+        private personalInfo: Personal,
+        private medicalInfo: MedicalInfo,
+        private contact: Contact
     ) {}
 
     updateContactInfo(newContactInfo: Contact) {
