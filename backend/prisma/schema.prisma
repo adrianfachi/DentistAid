@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client" 
   output   = "../generated/prisma"
 }
 
@@ -13,3 +13,53 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Patient {
+  patientId Int @id @default(autoincrement())
+  email String @unique
+  cpf String @unique
+  name String
+  telephone String
+  birth_date DateTime
+  occupation String
+  origin String
+  first_appointment DateTime
+  recurrence String
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  deletedAt DateTime?
+  post Post[]
+  appointment Appointment[]
+  record Record @relation(fields: [recordId], references: [recordId])
+  recordId String @unique
+}
+
+model Post {
+  postId String @id @default(uuid())
+  content String?
+  image String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  patient Patient @relation(fields: [patientId], references: [patientId])
+  patientId Int
+}
+
+model Record {        // Todo: fix relation Patient x Record x Appointment
+  recordId String @id @default(uuid())
+  patient Patient?
+  appointment Appointment[]
+}
+
+model Appointment {
+  appointmentId String @id @default(uuid())
+  name String
+  date DateTime
+  startsAt DateTime
+  endsAt DateTime
+  patient Patient @relation(fields: [patientId], references: [patientId])
+  patientId Int
+  record Record @relation(fields: [recordId], references: [recordId])
+  recordId String
+}
+
