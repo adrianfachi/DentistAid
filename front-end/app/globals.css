@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+:root {
+	--background: #fafafa;
+	--foreground: #222222;
+}
+
+@theme {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: var(--font-inter-sans);
+	--font-mono: var(--font-inter-mono);
+	--color-ligth-green: #43a29d;
+	--color-dark-green: #054945;
+}
+
+@media (prefers-color-scheme: ligth) {
+	:root {
+		--background: #0a0a0a;
+		--foreground: #ededed;
+	}
+}
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+}
