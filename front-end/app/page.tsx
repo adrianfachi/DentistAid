@@ -1,11 +1,12 @@
-import Image from "next/image";
 import Body from "./_components/Body";
+import SearchUser from "./_components/SearchUser";
 
-export default function Home() {
+export default function users() {
   return (
-    <Body>
+    <Body activeNavBar="users">
       <div>
-        a
+        <h1 className="text-2xl font-semibold">Dra. Natália Rossoni</h1>
+        <SearchUser />
       </div>
     </Body>
   );

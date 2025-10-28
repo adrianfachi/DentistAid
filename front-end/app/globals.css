@@ -2,26 +2,34 @@
 
 :root {
 	--background: #fafafa;
+	--background-standard: #fefefe;
 	--foreground: #222222;
+	--shadow: #006bd7;
 }
 
 @theme {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
+	--color-background-standard: var(--background-standard);
 	--font-sans: var(--font-inter-sans);
-	--font-mono: var(--font-inter-mono);
 	--color-ligth-green: #43a29d;
+	--color-green: #066964;
 	--color-dark-green: #054945;
+	--color-gray: #b5b5b5;
+	--shadow-blue-soft: 6px 6px 20px 2px rgba(0, 107, 215, 0.25);
+	--color-color-shadow: var(--shadow);
 }
 
-@media (prefers-color-scheme: ligth) {
+@media (prefers-color-scheme: light) {
 	:root {
-		--background: #0a0a0a;
-		--foreground: #ededed;
+		--background: #222222;
+		--background-standard: #1e1e1e;
+		--foreground: #fafafa;
+		--shadow: none;
 	}
 }
 
 body {
-	background: var(--background);
+	background: var(--background-standard);
 	color: var(--foreground);
 }
