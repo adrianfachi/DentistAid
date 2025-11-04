@@ -1,6 +1,4 @@
-import { PostContent } from "../value_objects/post-content.vo";
-
-
+import { PostContent } from "../value-objects/post-content.vo";
 
 
 export class Post {
