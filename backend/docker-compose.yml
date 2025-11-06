@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=dentistaidadmin
+      - POSTGRES_PASSWORD=dentistaidadmin
+      - POSTGRES_DB=dentistaiddb
+    volumes:
+      - dentistaiddb_data:/var/lib/postgresql/data
+
+volumes:
+  dentistaiddb_data:
