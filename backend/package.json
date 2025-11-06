@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "0.0.1",
   "description": "A backend for DentistAid",
-  "author": "Lorenzo ALi",
+  "author": "Lorenzo Ali",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
