@@ -28,8 +28,8 @@ model Patient {
   createdAt DateTime @default(now())
   updateAt DateTime @updatedAt
   deletedAt DateTime?
-  post Post[]
-  appointment Appointment[]
+  posts Post[]
+  appointments Appointment[]
 }
 
 model Post {
