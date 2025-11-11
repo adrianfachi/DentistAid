@@ -49,7 +49,15 @@ model Appointment {
   date DateTime
   startsAt DateTime
   endsAt DateTime
+  cancelledAt DateTime?
   patient Patient @relation(fields: [patientId], references: [patientId])
   patientId Int
+  //calendar Calendar @relation(fields: [calendarId], references: [calendarId])
+  //calendarId Int
 }
+
+//model Calendar {
+//  calendarId Int @id @default(autoincrement())
+//  appointments Appointment[]
+//}
 

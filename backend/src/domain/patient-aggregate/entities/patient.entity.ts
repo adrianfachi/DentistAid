@@ -20,7 +20,7 @@ export class Patient {
         medicalInfo: MedicalInfo,
         contact: Contact
     ): Patient {
-    return new Patient(id, credentials, personalInfo, medicalInfo, contact);
+        return new Patient(id, credentials, personalInfo, medicalInfo, contact);
     }
 
     updateContactInfo(newContactInfo: Contact): this {

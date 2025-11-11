@@ -60,6 +60,3 @@ Model-Sprint5.drawio.pdf
 
 # Prisma client and other generated
 /generated/
-
-# Personal route control for devs
-../RouteControl.xlsx
