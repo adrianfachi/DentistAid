@@ -1,3 +1,5 @@
+# This docker compose file is obsolete. The db is now hosted on AWS using Aurora RDS.
+
 services:
   postgres:
     image: postgres
