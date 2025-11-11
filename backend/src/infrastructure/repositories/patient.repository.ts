@@ -24,7 +24,7 @@ export class PatientRepository {
             include: { posts: true, appointments: true }
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not fetch patient by email");
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not fetch patient by email.");
         return patient;
     }
 
@@ -34,16 +34,16 @@ export class PatientRepository {
             include: { posts: true, appointments: true }
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not fetch patient by CPF");
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not fetch patient by CPF.");
         return patient;
     }
 
-    async fetchPatients(): Promise<Patient[] | null> {
+    async fetchAllPatients(): Promise<Patient[] | null> {
         const patients = await this.databaseService.patient.findMany({
             where: { deletedAt: null }
         });
         
-        if(patients === undefined) throw new InternalServerErrorException("Server Error: could not fetch patients");
+        if(patients === undefined) throw new InternalServerErrorException("Server Error: could not fetch patients.");
         return patients;
     }
 
@@ -52,7 +52,7 @@ export class PatientRepository {
             data: input,
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not create patient");
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not create patient.");
         return patient;
     }
 
@@ -62,7 +62,7 @@ export class PatientRepository {
             data: input,
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not update patient");
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not update patient.");
         return patient;
     }
 
@@ -72,7 +72,7 @@ export class PatientRepository {
             data: { deletedAt: new Date() },
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not delete patient");
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not delete patient.");
         return patient;
     }
 }

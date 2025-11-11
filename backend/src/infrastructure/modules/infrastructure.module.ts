@@ -5,5 +5,6 @@ import { PatientRepository } from '../repositories/patient.repository';
 
 @Module({
     providers: [DataBaseService, PatientRepository],
+    exports: [PatientRepository]
 })
 export class InfrastructureModule {}
