@@ -44,7 +44,7 @@ lerna-debug.log*
 
 # temp directory
 .temp
-.tmp
+.tmpS
 
 # Runtime data
 pids
@@ -58,5 +58,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Project diagram model
 Model-Sprint5.drawio.pdf
 
-# Prisma client
-/generated/prisma
+# Prisma client and other generated
+/generated/
