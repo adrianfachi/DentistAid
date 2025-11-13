@@ -23,7 +23,7 @@ model Patient {
   birth_date DateTime
   occupation String
   origin String
-  first_appointment DateTime
+  first_appointment DateTime?
   recurrence String
   createdAt DateTime @default(now())
   updateAt DateTime @updatedAt
