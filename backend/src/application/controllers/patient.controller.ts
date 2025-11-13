@@ -1,4 +1,6 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { CreatePatientDto } from "src/domain/patient-aggregate/dtos/create-patient.dto";
+import { PatientResponseDto } from "src/domain/patient-aggregate/dtos/patient-response.dto";
 import { PatientService } from "src/domain/patient-aggregate/services/patient.service";
 
 
@@ -24,5 +26,16 @@ export class PatientController {
     @Get(":cpf")
     async getPatienByCpf(@Param("cpf") email: string): Promise<any> {
         return await this.patientService.showPatientByEmail(email);
+    }
+
+    @Post()
+    @UsePipes(new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+    }))
+    async postPatient(input: CreatePatientDto): Promise<PatientResponseDto> {
+        const patient = await this.patientService.addPatient(input);
+        return patient;
     }
 }

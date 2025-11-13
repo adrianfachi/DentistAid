@@ -47,12 +47,12 @@ export class PatientRepository {
         return patients;
     }
 
-    async createPatient(input: PatientCreateInput): Promise<Patient | null> {
+    async createPatient(input: PatientCreateInput): Promise<Patient> {
         const patient = await this.databaseService.patient.create({
             data: input,
         });
 
-        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not create patient.");
+        if(!patient) throw new InternalServerErrorException("Server Error: could not create patient.");
         return patient;
     }
 

@@ -1,44 +1,54 @@
 import { Type } from "class-transformer";
 import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Length } from "class-validator";
+import { CreatePatientDto } from "./create-patient.dto";
+import { PartialType } from "@nestjs/mapped-types";
 
 
-export class UpdatePatientDto {
-    @IsOptional()
-    @IsEmail()
-    email: string;
+// Testing out the mapped-types functions from Nest :D
 
-    @IsOptional()
-    @IsString()
-    cpf: string;
+export class UpdatePatientDto extends PartialType(CreatePatientDto) {}
 
-    @IsOptional()
-    @IsString()
-    @Length(3, 60)
-    name: string;
 
-    @IsOptional()
-    @IsPhoneNumber('BR')
-    telephone: string;
 
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    birthDate: Date;
+// My old UpdatePatiendDto (boring):
 
-    @IsOptional()
-    @IsString()
-    occupation: string;
+// export class UpdatePatientDto {
+//     @IsOptional()
+//     @IsEmail()
+//     email: string;
 
-    @IsOptional()
-    @IsString()
-    origin: string;
+//     @IsOptional()
+//     @IsString()
+//     cpf: string;
 
-    @IsOptional()
-    @IsDate()
-    firstAppointment: Date;
+//     @IsOptional()
+//     @IsString()
+//     @Length(3, 60)
+//     name: string;
 
-    @IsOptional()
-    @IsString()
-    @IsEnum(["Monthly","Bimonthly","Quarterly","Semiannual","Annual"])
-    recurrence: string;
-}
+//     @IsOptional()
+//     @IsPhoneNumber('BR')
+//     telephone: string;
+
+//     @IsOptional()
+//     @IsDate()
+//     @Type(() => Date)
+//     birthDate: Date;
+
+//     @IsOptional()
+//     @IsString()
+//     occupation: string;
+
+//     @IsOptional()
+//     @IsString()
+//     origin: string;
+
+//     @IsOptional()
+//     @IsDate()
+//     firstAppointment: Date;
+
+//     @IsOptional()
+//     @IsString()
+//     @IsEnum(["Monthly","Bimonthly","Quarterly","Semiannual","Annual"])
+//     recurrence: string;
+// }

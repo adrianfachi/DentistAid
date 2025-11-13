@@ -6,8 +6,6 @@ import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models"
 import { UpdatePatientDto } from "../dtos/update-patient.dto";
 
 
-
-
 @Injectable()
 export class PatientMapper {
 
