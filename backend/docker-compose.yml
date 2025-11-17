@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=mydockerpostgres
+      - POSTGRES_PASSWORD=mydockerpostgres
+      - POSTGRES_DB=firstdockerdb
+    volumes:
+      - firstdockerdb_pg_data:/var/lib/postgresql/data
+
+volumes:
+  firstdockerdb_pg_data:
+
