@@ -2,7 +2,6 @@ import { Appointment } from "../../calender-aggregate/entities/appointment.entit
 import { Post } from "../entities/post.entity";
 
 
-
 export class PatientResponseDto {
     patientId: number;
     email: string;
