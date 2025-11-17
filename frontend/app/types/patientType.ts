@@ -4,14 +4,14 @@ type patientType = {
 	cpf: string;
 	name: string;
 	telephone: string;
-	birth: Date;
+	birthDate: Date;
 	occupation: string;
 	origin: string;
-	first_appointment: Date;
+	firstAppointment: Date;
 	recurrence: string;
 	createdAt: Date;
 	updateAt: Date;
-	deletedAt?: Date;
+	deletedAt?: string;
 	appointment?: appointmentType[];
 	post?: postType[];
 };

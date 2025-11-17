@@ -54,7 +54,7 @@ function PatientInformations({ patient, editing }: Props) {
               label="Data de nascimento"
               placeHolder="22/09/1999"
               type="date"
-              value={patient.birth.toISOString().split('T')[0]}
+              value={patient.birthDate ? patient.birthDate.toISOString().split('T')[0] : ''}
               editable={editing}
             />
             <FormInput
@@ -78,7 +78,7 @@ function PatientInformations({ patient, editing }: Props) {
               label="Data da primeira consulta"
               placeHolder="07/03/2025"
               type="date"
-              value={patient.first_appointment.toISOString().split('T')[0]}
+              value={patient.firstAppointment ? patient.firstAppointment.toISOString().split('T')[0] : ''}
               editable={editing}
             />
           </div>
