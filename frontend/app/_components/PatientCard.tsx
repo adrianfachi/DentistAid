@@ -57,7 +57,7 @@ function PatientCard({ patient }: Props) {
   }
 
   return (
-    <div className="bg-background-standard w-fit p-4 rounded-lg hover:bg-background-contrast transition-colors duration-200 flex flex-col items-center gap-3 text-[0.7rem]">
+    <div className="w-fit p-4 rounded-lg hover:bg-background-contrast transition-colors duration-200 flex flex-col items-center gap-3 text-[0.7rem]">
       <Link className="flex flex-col items-center gap-3 cursor-pointer" href={{ pathname: "/patient", search: `?search=${patient.patientId}` }}>
         <div className={`${bgClass} w-12 h-12 flex justify-center text-2xl items-center rounded-full text-white font-bold`}>
           {initialNameLetter}

@@ -54,6 +54,7 @@ export default function NewPatientModal({ isOpen, setIsOpen }: Props) {
         <FormInput id="postNumber" label="Número de Prontuário" placeHolder="Prontuário" type="text" />
         <FormInput id="name" label="Nome Completo" placeHolder="Nome" type="text" />
         <FormInput id="birth" label="Data de nascimento" placeHolder="22/09/1999" type="date" />
+        <FormInput id='telephone' label='Telefone' placeHolder='51 99999-9999' type="text" />
         <FormInput id="email" label="Email" placeHolder="Email" type="string" />
         <FormInput id="cpf" label="CPF" placeHolder="CPF" type="string" />
         <FormInput id="ocupation" label="Ocupação" placeHolder="Ocupação" type="string" />

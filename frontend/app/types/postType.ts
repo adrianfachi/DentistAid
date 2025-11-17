@@ -1,8 +1,8 @@
 type postType = {
 	postId: string;
-	content?: string;
+	content: string;
 	image?: string[];
 	createdAt: Date;
-	updatedAt: Date;
+	updatedAt: Date | null;
 	deletedAt?: Date;
 };
