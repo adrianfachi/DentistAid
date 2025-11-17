@@ -1,19 +1,4 @@
-// Load .env into process.env early (dependency-free)
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-try {
-  const envPath = resolve(process.cwd(), '.env');
-  const env = readFileSync(envPath, 'utf8');
-  env.split(/\r?\n/).forEach((line) => {
-    const m = line.match(/^\s*([^#=]+)\s*=\s*(.*)\s*$/);
-    if (!m) return;
-    let key = m[1]?.trim();
-    let val = m[2]?.trim() ?? '';
-    if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
-    if (key && process.env[key] === undefined) process.env[key] = val;
-  });
-} catch (e) {}
-
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './application/modules/app.module.js';
 import { json, urlencoded } from 'express';
@@ -28,10 +13,10 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: "10mb" }));
 
   app.enableCors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:3000",
     credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 5432);
 }
 bootstrap();
