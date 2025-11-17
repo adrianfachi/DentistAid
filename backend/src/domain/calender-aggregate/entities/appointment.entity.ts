@@ -1,5 +1,4 @@
-
-import { Patient } from "src/domain/patient-aggregate/entities/patient.entity";
+import { Patient } from "../../patient-aggregate/entities/patient.entity";
 import { Period } from "../value-objects/period.vo";
 
 

@@ -1,35 +1,37 @@
 import { Injectable } from "@nestjs/common";
-import { PatientResponseDto } from "../dtos/patient-response.dto";
-import { Patient } from "generated/prisma/client";
-import { CreatePatientDto } from "../dtos/create-patient.dto";
-import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models";
-import { UpdatePatientDto } from "../dtos/update-patient.dto";
+import { Patient } from "generated/prisma/client.js";
+import { PatientResponseDto } from "../dtos/patient-response.dto.js";
+import { CreatePatientDto } from "../dtos/create-patient.dto.js";
+import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models.js";
+import { UpdatePatientDto } from "../dtos/update-patient.dto.js";
 
 
 @Injectable()
 export class PatientMapper {
 
-    mapPrismaToPatientResponse(input: Patient): PatientResponseDto {
+    mapPrismaToPatientResponse(input: Patient & { appointments? } & { posts? }): PatientResponseDto {
         const patient: PatientResponseDto = {
             patientId: input.patientId,
             email: input.email,
             cpf: input.cpf,
             name: input.name,
             telephone: input.telephone,
-            birthDate: input.birth_date,
+            birth_date: input.birth_date,
             occupation: input.occupation,
             origin: input.origin,
-            firstAppointment: input.first_appointment,
+            first_appointment: input.first_appointment,
             recurrence: input.recurrence,
             createdAt: input.createdAt,
-            updatedAt: input.updateAt,
-            posts: input.posts,
-            appointments: input.appointments,
+            updatedAt: input.updatedAt,
+            deletedAt: input.deletedAt,
+            posts: input.posts ? input.posts : [],
+            appointments: input.appointments ? input.appointments : [],
         };
         return patient;
     }
 
     mapCreatePatientToPrisma(input: CreatePatientDto): PatientCreateInput {
+        console.log(input);
         const patient: PatientCreateInput = {
             email: input.email,
             cpf: input.cpf,

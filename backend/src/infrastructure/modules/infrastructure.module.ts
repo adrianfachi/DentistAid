@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { DataBaseService } from '../services/database.service';
-import { PatientRepository } from '../repositories/patient.repository';
+import { DataBaseService } from '../services/database.service.js';
+import { PatientRepository } from '../repositories/patient.repository.js';
 
 
 @Module({

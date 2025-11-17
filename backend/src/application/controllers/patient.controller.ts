@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Post, UsePipes, ValidationPipe } from "@nestjs/common";
-import { CreatePatientDto } from "src/domain/patient-aggregate/dtos/create-patient.dto";
-import { PatientResponseDto } from "src/domain/patient-aggregate/dtos/patient-response.dto";
-import { PatientService } from "src/domain/patient-aggregate/services/patient.service";
+import { Body, Controller, Get, Param, Post, UsePipes, ValidationPipe } from "@nestjs/common";
+import { CreatePatientDto } from "../../domain/patient-aggregate/dtos/create-patient.dto";
+import { PatientResponseDto } from "../../domain/patient-aggregate/dtos/patient-response.dto";
+import { PatientService } from "../../domain/patient-aggregate/services/patient.service";
 
 
 @Controller("patients")
@@ -34,7 +34,7 @@ export class PatientController {
         forbidNonWhitelisted: true,
         transform: true,
     }))
-    async postPatient(input: CreatePatientDto): Promise<PatientResponseDto> {
+    async postPatient(@Body() input: CreatePatientDto): Promise<PatientResponseDto> {
         const patient = await this.patientService.addPatient(input);
         return patient;
     }

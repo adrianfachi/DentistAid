@@ -1,7 +1,7 @@
-import { Contact } from "../value-objects/contact.vo";
-import { Credentials } from "../value-objects/credentials.vo";
-import { MedicalInfo } from "../value-objects/medical-info.vo";
-import { Personal } from "../value-objects/personal.vo";
+import { Contact } from "../value-objects/contact.vo.js";
+import { Credentials } from "../value-objects/credentials.vo.js";
+import { MedicalInfo } from "../value-objects/medical-info.vo.js";
+import { Personal } from "../value-objects/personal.vo.js";
 
 
 export class Patient {

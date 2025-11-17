@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Length } from "class-validator";
-import { CreatePatientDto } from "./create-patient.dto";
 import { PartialType } from "@nestjs/mapped-types";
+import { CreatePatientDto } from "./create-patient.dto.js";
 
 
 // Testing out the mapped-types functions from Nest :D

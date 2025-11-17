@@ -1,19 +1,22 @@
-import { Appointment, Post } from "generated/prisma/client";
+import { Appointment } from "../../calender-aggregate/entities/appointment.entity";
+import { Post } from "../entities/post.entity";
+
 
 
 export class PatientResponseDto {
-    patientId: string;
+    patientId: number;
     email: string;
     cpf: string;
     name: string;
     telephone: string;
-    birthDate: Date;
+    birth_date: Date;
     occupation: string;
     origin: string;
-    firstAppointment: Date;
+    first_appointment: Date | null;
     recurrence: string;
     createdAt: Date;
     updatedAt: Date;
-    posts: Post[];
-    appointments: Appointment[];
+    deletedAt: Date | null;
+    posts?: Post[];
+    appointments?: Appointment[];
 }

@@ -8,10 +8,10 @@ CREATE TABLE "Patient" (
     "birth_date" TIMESTAMP(3) NOT NULL,
     "occupation" TEXT NOT NULL,
     "origin" TEXT NOT NULL,
-    "first_appointment" TIMESTAMP(3) NOT NULL,
+    "first_appointment" TIMESTAMP(3),
     "recurrence" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updateAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Patient_pkey" PRIMARY KEY ("patientId")

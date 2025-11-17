@@ -1,14 +1,14 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { DataBaseService } from "../services/database.service";
-import { Patient } from "generated/prisma/client";
-import { PatientCreateInput } from "generated/prisma/models";
+import { DataBaseService } from "../services/database.service.js";
+import { Appointment, Patient, Post } from "generated/prisma/browser.js";
+import { PatientCreateInput } from "generated/prisma/models.js";
 
 
 @Injectable()
 export class PatientRepository {
     constructor(private readonly databaseService: DataBaseService) {}
 
-    async fetchPatientById(id: number): Promise<Patient | null> {
+    async fetchPatientById(id: number): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
             where: { patientId: id },
             include: { posts: true, appointments: true },
@@ -18,7 +18,7 @@ export class PatientRepository {
         return patient;
     }
 
-    async fetchPatientByEmail(email: string): Promise<Patient | null> {
+    async fetchPatientByEmail(email: string): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
             where: { email },
             include: { posts: true, appointments: true }
@@ -28,7 +28,7 @@ export class PatientRepository {
         return patient;
     }
 
-    async fetchPatientByCpf(cpf: string): Promise<Patient | null> {
+    async fetchPatientByCpf(cpf: string): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
             where: { cpf },
             include: { posts: true, appointments: true }
@@ -40,16 +40,17 @@ export class PatientRepository {
 
     async fetchAllPatients(): Promise<Patient[] | null> {
         const patients = await this.databaseService.patient.findMany({
-            where: { deletedAt: null }
+            where: { deletedAt: null },
         });
         
         if(patients === undefined) throw new InternalServerErrorException("Server Error: could not fetch patients.");
         return patients;
     }
 
-    async createPatient(input: PatientCreateInput): Promise<Patient> {
+    async createPatient(input: PatientCreateInput): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.create({
             data: input,
+            include: { posts: true, appointments: true },
         });
 
         if(!patient) throw new InternalServerErrorException("Server Error: could not create patient.");
@@ -60,6 +61,7 @@ export class PatientRepository {
         const patient = this.databaseService.patient.update({
             where: { patientId: id },
             data: input,
+            include: { posts: true, appointments: true },
         });
 
         if(patient === undefined) throw new InternalServerErrorException("Server Error: could not update patient.");
@@ -70,6 +72,7 @@ export class PatientRepository {
         const patient = this.databaseService.patient.update({
             where: { patientId: id },
             data: { deletedAt: new Date() },
+            include: { posts: true, appointments: true },
         });
 
         if(patient === undefined) throw new InternalServerErrorException("Server Error: could not delete patient.");

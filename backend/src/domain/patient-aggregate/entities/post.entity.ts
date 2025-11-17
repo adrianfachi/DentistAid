@@ -1,4 +1,4 @@
-import { PostContent } from "../value-objects/post-content.vo";
+import { PostContent } from "../value-objects/post-content.vo.js";
 
 
 export class Post {

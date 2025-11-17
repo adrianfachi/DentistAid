@@ -16,7 +16,7 @@ export class CreatePatientDto {
     name: string;
 
     @IsNotEmpty()
-    @IsPhoneNumber('BR')
+    @IsPhoneNumber("BR")
     telephone: string;
 
     @IsNotEmpty()
@@ -37,7 +37,6 @@ export class CreatePatientDto {
     firstAppointment: Date;
 
     @IsNotEmpty()
-    @IsString()
     @IsEnum(["Monthly","Bimonthly","Quarterly","Semiannual","Annual"])
     recurrence: string;
 }
