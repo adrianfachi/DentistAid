@@ -1,21 +1,81 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { MdClose } from 'react-icons/md';
 import ImageGalleryModal from './ImageGalleryModal';
+import usePostAPI from '@/app/_hooks/usePostAPI';
+import { ScaleLoader } from 'react-spinners';
+import toast, { Toaster } from 'react-hot-toast';
 
 type Props = {
   isOpen: boolean;
   setIsOpen: () => void;
   update?: boolean;
   content?: string;
-  image?: string[]; // Array de URLs de imagens
+  image?: string[];
+  id?: string
 }
 
 
-function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props) {
+function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Props) {
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
+  const refContent = useRef<HTMLTextAreaElement>(null);
+
+  const [images, setImages] = useState<string[]>(() => image ? [...image] : []);
+  const [isLoading, setIsLoading] = useState(false);
+  const { updatePost, error } = usePostAPI();
+
+  useEffect(() => {
+    setImages(image ? [...image] : []);
+  }, [image]);
+
+  const patchPost = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const body: newPostType = {
+        content: refContent.current?.value || "",
+        image: images
+      };
+      await updatePost(id, body);
+
+      if (error) {
+        toast.error("Erro ao atualizar postagem", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+      } else {
+        toast.success("Postagem atualizada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+      }
+
+    } catch (error) {
+      console.error("Erro ao atualizar postagem:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addNewImage = (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    Array.from(fileList).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = String(reader.result);
+        setImages((prev) => [...prev, base64]);
+      };
+      reader.onerror = (err) => {
+        console.error('Erro ao ler arquivo', err);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImageAt = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleImageClick = (index: number) => {
+    setInitialImageIndex(index);
+    setIsImageGalleryOpen(true);
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -31,14 +91,6 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props)
       document.body.style.overflow = previousOverflow || 'auto';
     };
   }, [isOpen, isImageGalleryOpen]);
-
-
-  const handleImageClick = (index: number) => {
-    setInitialImageIndex(index);
-    setIsImageGalleryOpen(true);
-  };
-
-  const images = useMemo(() => image || [], [image]);
 
   if (!isOpen) return null;
 
@@ -56,6 +108,7 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props)
             className='bg-background-standard border border-gray rounded-xl p-2 scroll-style'
             style={{ width: '800px', height: '200px', maxHeight: '400px', resize: 'vertical' }}
             defaultValue={content}
+            ref={refContent}
           />
 
           <div className='flex justify-between items-end'>
@@ -91,7 +144,7 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props)
             <div className='flex justify-end gap-3'>
               <label
                 htmlFor="image-upload"
-                className={`bg-dark-green w-fit px-3 py-1 rounded-md cursor-pointer text-white`}
+                className={`bg-dark-green w-fit px-3 py-1.5 rounded-md cursor-pointer text-white`}
               >
                 Nova imagem
               </label>
@@ -100,12 +153,34 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props)
                 id="image-upload"
                 accept="image/*"
                 style={{ display: 'none' }}
+                onChange={(e) => {
+                  addNewImage(e.target.files);
+                }}
               />
-              <input
-                type="button"
-                value={`${update ? "Alterar" : "Criar nova"} postagem`}
-                className='bg-ligth-green w-fit px-3 py-1 rounded-md cursor-pointer'
-              />
+              <div className='relative'>
+                <input
+                  type="button"
+                  value={`${isLoading ? "" : `${update ? "Alterar" : "Criar nova"} postagem`}`}
+                  className='bg-ligth-green w-40 py-1.5 rounded-md cursor-pointer'
+                  onClick={() => {
+                    update ?
+                      patchPost(id!)
+                      : {}
+                    setIsOpen()
+                  }}
+                />
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <ScaleLoader
+                      color="var(--foreground)"
+                      height={20}
+                      width={4}
+                      radius={2}
+                      margin={2}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -116,6 +191,7 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image }: Props)
           images={images}
           onClose={() => setIsImageGalleryOpen(false)}
           initialIndex={initialImageIndex}
+          removeImage={removeImageAt}
         />
       )}
     </>

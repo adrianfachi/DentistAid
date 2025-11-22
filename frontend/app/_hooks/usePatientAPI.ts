@@ -6,16 +6,11 @@ const BASE_URL = "http://localhost:5432";
 const usePatientAPI = () => {
 	const [error, setError] = useState<string | null>(null);
 
-	const createPatient = async (body: patientType) => {
+	const createPatient = async (body: newPatientType) => {
 		setError(null);
 
 		try {
-			const response = await axios.post(`${BASE_URL}/patients`, {
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(body),
-			});
+			const response = await axios.post(`${BASE_URL}/patients`, body);
 
 			if (!response) {
 				throw new Error("Erro ao fazer login");
@@ -44,8 +39,8 @@ const usePatientAPI = () => {
 				...p,
 				birthDate: new Date(p.birthDate),
 				firstAppointment: p.firstAppointment ? new Date(p.firstAppointment) : null,
-				createdAt: new Date(p.createdAt),
-				updatedAt: new Date(p.updatedAt),
+				createdAt: p.createdAt ? new Date(p.createdAt) : null,
+				updatedAt: p.updatedAt ? new Date(p.updatedAt) : null,
 			}));
 			return patients;
 		} catch (error: any) {
@@ -78,7 +73,18 @@ const usePatientAPI = () => {
 		}
 	};
 
-	return { error, createPatient, getPatients, getPatientById };
+	const deletePatient = async (id: number | null) => {
+		setError(null);
+		if (!id) return undefined;
+
+		try {
+			await axios.delete(`${BASE_URL}/patients/${id}`);
+		} catch (error: any) {
+			setError(error.message);
+		}
+	};
+
+	return { error, createPatient, getPatients, getPatientById, deletePatient };
 };
 
 export default usePatientAPI;

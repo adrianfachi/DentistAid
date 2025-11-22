@@ -6,10 +6,11 @@ import { MdClose } from 'react-icons/md';
 type Props = {
   isOpen: boolean;
   setIsOpen: () => void;
+  onDelete: () => void;
 }
 
 
-function DeleteModal({ isOpen, setIsOpen }: Props) {
+function DeleteModal({ isOpen, setIsOpen, onDelete }: Props) {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -33,8 +34,8 @@ function DeleteModal({ isOpen, setIsOpen }: Props) {
       <div className="relative p-4 bg-background rounded-md shadow-lg flex flex-col gap-3">
         <p className='font-bold text-xl'>Tem certeza que quer excluir?</p>
         <div className='flex justify-center gap-2'>
-          <input type="button" value="Excluir" className='w-30 py-1 bg-red-400 text-red-800 rounded-lg' />
-          <input type="button" value="Cancelar" className='w-30 py-1 bg-gray text-background rounded-lg' />
+          <input type="button" value="Excluir" className='w-30 py-1 bg-red-400 text-red-800 rounded-lg' onClick={onDelete} />
+          <input type="button" value="Cancelar" className='w-30 py-1 bg-gray text-background rounded-lg' onClick={setIsOpen} />
         </div>
       </div>
     </div>

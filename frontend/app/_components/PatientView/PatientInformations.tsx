@@ -40,8 +40,6 @@ function PatientInformations({ patient, editing }: Props) {
   const initialRecurrence = recurrenceMap[englishRecurrence as keyof typeof recurrenceMap] || '';
   const [recurrence, setRecurrence] = useState<string>(initialRecurrence);
 
-  const displayedOrigin = origin === 'Outro' ? initialOtherOriginValue : origin;
-
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-3">Informações do paciente</h3>
@@ -61,7 +59,7 @@ function PatientInformations({ patient, editing }: Props) {
               id="email"
               label="Email"
               placeHolder="Email"
-              type="string"
+              type="text"
               value={patient.email}
               editable={editing}
             />
@@ -69,7 +67,7 @@ function PatientInformations({ patient, editing }: Props) {
               id="ocupation"
               label="Ocupação"
               placeHolder="Ocupação"
-              type="string"
+              type="text"
               value={patient.occupation}
               editable={editing}
             />
@@ -87,7 +85,7 @@ function PatientInformations({ patient, editing }: Props) {
             <FormInput
               id="telephone"
               label="Telefone"
-              placeHolder="51 99999-9999"
+              placeHolder="+5551999999999"
               type="text"
               value={patient.telephone}
               editable={editing}
@@ -96,7 +94,7 @@ function PatientInformations({ patient, editing }: Props) {
               id="cpf"
               label="CPF"
               placeHolder="CPF"
-              type="string"
+              type="text"
               value={patient.cpf}
               editable={editing}
             />
@@ -120,7 +118,7 @@ function PatientInformations({ patient, editing }: Props) {
                 </select>
               ) : (
                 <p className="border p-1 rounded-md border-background-contrast text-gray">
-                  {displayedOrigin || 'Não informado'}
+                  {origin || 'Não informado'}
                 </p>
               )}
             </div>
@@ -173,7 +171,7 @@ function PatientInformations({ patient, editing }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </div >
   )
 }
 

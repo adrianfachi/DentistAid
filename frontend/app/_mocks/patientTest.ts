@@ -14,7 +14,7 @@ const patientTest: patientType[] = [
 		firstAppointment: new Date(),
 		recurrence: "Monthly",
 		createdAt: new Date(),
-		updateAt: new Date(),
+		updatedAt: new Date(),
 		appointment: appointmentTest,
 		post: postTest,
 	},

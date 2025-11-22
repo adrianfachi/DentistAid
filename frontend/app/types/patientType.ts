@@ -10,8 +10,8 @@ type patientType = {
 	firstAppointment: Date;
 	recurrence: string;
 	createdAt: Date;
-	updateAt: Date;
+	updatedAt?: Date;
 	deletedAt?: string;
-	appointment?: appointmentType[];
-	post?: postType[];
+	appointment: appointmentType[];
+	post: postType[];
 };
