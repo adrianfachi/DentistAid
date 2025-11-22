@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DataBaseService } from "../services/database.service.js";
 import { Appointment, Patient, Post } from "generated/prisma/browser.js";
-import { PatientCreateInput } from "generated/prisma/models.js";
+import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models.js";
+import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/update-patient.dto.js";
 
 
 @Injectable()
@@ -10,7 +11,7 @@ export class PatientRepository {
 
     async fetchPatientById(id: number): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
-            where: { patientId: id },
+            where: { patientId: id, deletedAt: null },
             include: { posts: true, appointments: true },
         });
 
@@ -20,7 +21,7 @@ export class PatientRepository {
 
     async fetchPatientByEmail(email: string): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
-            where: { email },
+            where: { email, deletedAt: null },
             include: { posts: true, appointments: true }
         });
 
@@ -30,7 +31,7 @@ export class PatientRepository {
 
     async fetchPatientByCpf(cpf: string): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
-            where: { cpf },
+            where: { cpf, deletedAt: null },
             include: { posts: true, appointments: true }
         });
 
@@ -47,6 +48,15 @@ export class PatientRepository {
         return patients;
     }
 
+    async fetchDeletedPatients(): Promise<Patient[] | null> {
+        const patients = await this.databaseService.patient.findMany({
+            where: { deletedAt: { not: null } },
+        });
+
+        if(patients === undefined) throw new InternalServerErrorException("Server Error: could not fetch deleted patients.");
+        return patients;
+    }
+
     async createPatient(input: PatientCreateInput): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.create({
             data: input,
@@ -57,8 +67,8 @@ export class PatientRepository {
         return patient;
     }
 
-    updatePatient(id: number, input: Partial<PatientCreateInput>): Promise<Patient | null> {
-        const patient = this.databaseService.patient.update({
+    async updatePatient(id: number, input: PatientUpdateInput): Promise<Patient | null> {
+        const patient = await this.databaseService.patient.update({
             where: { patientId: id },
             data: input,
             include: { posts: true, appointments: true },
@@ -76,6 +86,17 @@ export class PatientRepository {
         });
 
         if(patient === undefined) throw new InternalServerErrorException("Server Error: could not delete patient.");
+        return patient;
+    }
+
+    restorePatient(id: number): Promise<Patient | null> {
+        const patient = this.databaseService.patient.update({
+            where: { patientId: id },
+            data: { deletedAt: null },
+            include: { posts: true, appointments: true },
+        });
+        
+        if(patient === undefined) throw new InternalServerErrorException("Server Error: could not reactivate patient.");
         return patient;
     }
 }
