@@ -48,7 +48,7 @@ function PatientPosts({ posts }: Props) {
                 ))}
             </tbody>
           </table>
-          <PostModal isOpen={updatePostModal} setIsOpen={() => setUpdatePostModal(false)} content={postUpdate?.content} image={postUpdate?.image} update={true} />
+          <PostModal isOpen={updatePostModal} setIsOpen={() => setUpdatePostModal(false)} content={postUpdate?.content} image={postUpdate?.image} update={true} id={postUpdate?.postId} />
         </div>
       ) : (
         <p>Nenhuma postagem encontrada</p>

@@ -7,6 +7,10 @@ import PatientAppointment from './PatientAppointment';
 import PatientPosts from './PatientPosts';
 import PostModal from './PostModal';
 import DeleteModal from '../DeleteModal';
+import patientTest from '@/app/_mocks/patientTest';
+import usePatientAPI from '@/app/_hooks/usePatientAPI';
+import toast, { Toaster } from 'react-hot-toast';
+import AppointmentModal from './AppointmentModal';
 
 type Props = {
   patient: patientType | undefined
@@ -19,11 +23,30 @@ function PatientView({ patient }: Props) {
     const colors = ["bg-ligth-green", "bg-dark-green", "bg-green"];
     const bgClass = colors[patient!.patientId % 3];
     const index = patient!.name.trim().lastIndexOf(" ")
-    const initialNameLetter = patient!.name[0].toUpperCase() + (index != -1 && patient!.name[index + 1].toUpperCase());
-    const [isOpenPostModal, setIsOpenPostModal] = useState<boolean>(false)
-    const [isOpenAppointmentModal, setIsOpenAppointmentModal] = useState<boolean>(false)
-    const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false)
+    const initialNameLetter = patient!.name[0].toUpperCase() + (index != -1 ? patient.name[index + 1].toUpperCase() : "");
+    const [isOpenPostModal, setIsOpenPostModal] = useState<boolean>(false);
+    const [isOpenAppointmentModal, setIsOpenAppointmentModal] = useState<boolean>(false);
+    const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { deletePatient, error } = usePatientAPI();
 
+    const deletePatientById = async (id: number) => {
+      setIsLoading(true);
+      try {
+        await deletePatient(id);
+
+        if (error) {
+          toast.error("Erro ao deletar", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        } else {
+          toast.success("Postagem atualizada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        }
+
+      } catch (error) {
+        console.error("Erro ao atualizar postagem:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     return (
       <div className='flex flex-col gap-3'>
         <div className='flex justify-between'>
@@ -42,14 +65,15 @@ function PatientView({ patient }: Props) {
             <input type="button" value="Nova consulta" onClick={() => { setIsOpenAppointmentModal(true) }} className='py-1 rounded-md bg-dark-green cursor-pointer' style={{ width: '150px' }} />
           </div>
           <PostModal isOpen={isOpenPostModal} setIsOpen={() => setIsOpenPostModal(false)} />
-          <PostModal isOpen={isOpenAppointmentModal} setIsOpen={() => setIsOpenAppointmentModal(false)} />
-          <DeleteModal isOpen={isOpenDeleteModal} setIsOpen={() => setIsOpenDeleteModal(false)} />
+          <AppointmentModal isOpen={isOpenAppointmentModal} setIsOpen={() => setIsOpenAppointmentModal(false)} appointments={patient.appointment} patientId={patient.patientId} />
+          <DeleteModal isOpen={isOpenDeleteModal} setIsOpen={() => setIsOpenDeleteModal(false)} onDelete={() => deletePatientById(patient.patientId)} />
         </div>
         <div className='flex gap-10 h-fit'>
           <PatientInformations patient={patient} editing={editing} />
           <PatientAppointment appointments={patient.appointment} />
         </div>
-        <PatientPosts posts={patient.post} />
+        <PatientPosts posts={patientTest[0].post} />
+        <Toaster position='top-right' />
       </div>
     )
   }

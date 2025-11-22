@@ -4,7 +4,6 @@ import { FaWhatsapp } from "react-icons/fa";
 import { AiOutlineMail } from "react-icons/ai";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
-import { style } from "framer-motion/client";
 
 
 type Props = {
@@ -45,7 +44,7 @@ function PatientCard({ patient }: Props) {
   const colors = ["bg-ligth-green", "bg-dark-green", "bg-green"];
   const bgClass = colors[patient.patientId % 3];
   const index = patient.name.trim().lastIndexOf(" ")
-  const initialNameLetter = patient.name[0].toUpperCase() + (index != -1 && patient.name[index + 1].toUpperCase());
+  const initialNameLetter = patient.name[0].toUpperCase() + (index != -1 ? patient.name[index + 1].toUpperCase() : "");
 
   function copyEmail() {
     if (!patient.email || patient.email.length <= 3) {
@@ -80,13 +79,13 @@ function PatientCard({ patient }: Props) {
         <div className="flex gap-0.5 items-center cursor-pointer p-1" onClick={copyEmail}>
           <AiOutlineMail />
           Copiar Email
-          <Toaster position="top-right" />
         </div>
         <a className="flex gap-0.5 items-center cursor-pointer p-1" href={`https://wa.me/${patient.telephone}`} target="_blank">
           <FaWhatsapp />
           WhatsApp
         </a>
       </div>
+      <Toaster position="top-right" />
     </div>
   )
 }
