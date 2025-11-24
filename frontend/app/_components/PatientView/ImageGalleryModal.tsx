@@ -61,7 +61,7 @@ function ImageGalleryModal({ images, onClose, initialIndex, removeImage }: Props
       <div className="absolute bottom-4 text-white text-lg">
         {currentIndex + 1} / {images.length}
       </div>
-      <DeleteModal isOpen={modalDeleteOpen} setIsOpen={() => setModalDeleteOpen(false)} onDelete={() => removeImage(currentIndex)} />
+      <DeleteModal isOpen={modalDeleteOpen} setIsOpen={() => setModalDeleteOpen(false)} onDelete={() => removeImage(currentIndex)} isLoading={false} />
     </div>
   );
 };
