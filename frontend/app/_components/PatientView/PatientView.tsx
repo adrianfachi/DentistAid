@@ -28,12 +28,12 @@ function PatientView({ patient }: Props) {
     const [isOpenAppointmentModal, setIsOpenAppointmentModal] = useState<boolean>(false);
     const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { deletePatient, error } = usePatientAPI();
+    const { deletePatient } = usePatientAPI();
 
     const deletePatientById = async (id: number) => {
       setIsLoading(true);
       try {
-        await deletePatient(id);
+        const { error } = await deletePatient(id);
 
         if (error) {
           toast.error("Erro ao deletar", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
@@ -64,15 +64,15 @@ function PatientView({ patient }: Props) {
             <input type="button" value="Nova postagem" onClick={() => { setIsOpenPostModal(true) }} className='py-1 rounded-md bg-ligth-green cursor-pointer' style={{ width: '150px' }} />
             <input type="button" value="Nova consulta" onClick={() => { setIsOpenAppointmentModal(true) }} className='py-1 rounded-md bg-dark-green cursor-pointer' style={{ width: '150px' }} />
           </div>
-          <PostModal isOpen={isOpenPostModal} setIsOpen={() => setIsOpenPostModal(false)} />
-          <AppointmentModal isOpen={isOpenAppointmentModal} setIsOpen={() => setIsOpenAppointmentModal(false)} appointments={patient.appointment} patientId={patient.patientId} />
-          <DeleteModal isOpen={isOpenDeleteModal} setIsOpen={() => setIsOpenDeleteModal(false)} onDelete={() => deletePatientById(patient.patientId)} />
+          <PostModal isOpen={isOpenPostModal} setIsOpen={() => setIsOpenPostModal(false)} patientId={patient.patientId} />
+          <AppointmentModal isOpen={isOpenAppointmentModal} setIsOpen={() => setIsOpenAppointmentModal(false)} appointments={patient.appointments} patientId={patient.patientId} patientName={patient.name} />
+          <DeleteModal isOpen={isOpenDeleteModal} setIsOpen={() => setIsOpenDeleteModal(false)} onDelete={() => deletePatientById(patient.patientId)} isLoading={isLoading} />
         </div>
         <div className='flex gap-10 h-fit'>
           <PatientInformations patient={patient} editing={editing} />
-          <PatientAppointment appointments={patient.appointment} />
+          <PatientAppointment appointments={patient.appointments} patientId={patient.patientId} patientName={patient.name} />
         </div>
-        <PatientPosts posts={patientTest[0].post} />
+        <PatientPosts posts={patient.posts} />
         <Toaster position='top-right' />
       </div>
     )

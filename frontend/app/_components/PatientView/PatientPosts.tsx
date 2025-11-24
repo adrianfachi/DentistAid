@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import PostModal from './PostModal';
 
 type Props = {
-  posts: postType[] | undefined;
+  posts: postType[];
 }
 
 function PatientPosts({ posts }: Props) {
@@ -14,7 +14,7 @@ function PatientPosts({ posts }: Props) {
     <div className='w-full'>
       <h3 className="text-lg font-semibold mb-3">Postagens</h3>
       {posts && posts.length !== 0 ? (
-        <div className='flex gap-4 flex-col py-5 px-2 shadow-blue-soft rounded-xl min-w-fit scroll-style overflow-auto' style={{ height: '300px' }}>
+        <div className='flex gap-4 flex-col py-5 px-2 shadow-blue-soft rounded-xl min-w-fit scroll-style overflow-auto' style={{ height: '200px' }}>
           <table className="w-full">
             <thead>
               <tr>
@@ -25,7 +25,7 @@ function PatientPosts({ posts }: Props) {
             </thead>
             <tbody>
               {posts
-                .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+                .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
                 .map((post, index) => (
                   <tr key={index} className="border-t border-gray-200 cursor-pointer" onClick={() => {
                     setUpdatePostModal(true)
@@ -39,10 +39,10 @@ function PatientPosts({ posts }: Props) {
                       </p>
                     </td>
                     <td className="py-2 text-sm text-center">
-                      {post.createdAt.toLocaleDateString()}
+                      {post.createdAt && new Date(post.createdAt).toLocaleDateString("pt-br")}
                     </td>
                     <td className="py-2 text-sm text-center">
-                      {post.updatedAt ? post.updatedAt.toLocaleDateString() : "- - -"}
+                      {post.updatedAt && new Date(post.updatedAt).toLocaleDateString("pt-br")}
                     </td>
                   </tr>
                 ))}

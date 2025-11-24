@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FiCalendar } from "react-icons/fi";
-import { FiCheckSquare, FiUsers } from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 type Props = {
@@ -13,7 +13,6 @@ export default function SideBar({ active }: Props) {
   const icons = [
     { Icon: FiCalendar, key: "calendar", link: "/calendar" },
     { Icon: FiUsers, key: "users", link: "/" },
-    { Icon: FiCheckSquare, key: "tasks", link: "/tasks" },
   ];
 
   return (

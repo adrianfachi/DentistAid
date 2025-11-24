@@ -1,32 +1,30 @@
 import axios from "axios";
+import { error } from "console";
 import { useState } from "react";
 
 const BASE_URL = "http://localhost:5432";
 
 const usePatientAPI = () => {
-	const [error, setError] = useState<string | null>(null);
-
 	const createPatient = async (body: newPatientType) => {
-		setError(null);
-
 		try {
 			const response = await axios.post(`${BASE_URL}/patients`, body);
-
-			if (!response) {
-				throw new Error("Erro ao fazer login");
-			}
-
-			const data = await response.data;
-
-			return data;
+			return { data: response.data, error: null };
 		} catch (error: any) {
-			setError(error.message);
-			return null;
+			return { data: null, error: error.message };
+		}
+	};
+
+	const updatePatient = async (id: number, body: newPatientType) => {
+		try {
+			const response = await axios.patch(`${BASE_URL}/patients/${id}`, body);
+
+			return { data: response.data, error: null };
+		} catch (error: any) {
+			return { data: null, error: error.message };
 		}
 	};
 
 	const getPatients = async () => {
-		setError(null);
 		try {
 			const response = await axios.get(`${BASE_URL}/patients`);
 
@@ -42,15 +40,13 @@ const usePatientAPI = () => {
 				createdAt: p.createdAt ? new Date(p.createdAt) : null,
 				updatedAt: p.updatedAt ? new Date(p.updatedAt) : null,
 			}));
-			return patients;
+			return { data: patients, error: null };
 		} catch (error: any) {
-			setError(error.message);
-			return null;
+			return { data: [], error: error.message };
 		}
 	};
 
 	const getPatientById = async (id: string | null): Promise<patientType | undefined> => {
-		setError(null);
 		if (!id) return undefined;
 
 		try {
@@ -68,23 +64,46 @@ const usePatientAPI = () => {
 
 			return patient;
 		} catch (error: any) {
-			setError(error.message);
 			return undefined;
 		}
 	};
 
-	const deletePatient = async (id: number | null) => {
-		setError(null);
-		if (!id) return undefined;
-
+	const deletedPatients = async () => {
 		try {
-			await axios.delete(`${BASE_URL}/patients/${id}`);
+			const response = await axios.get(`${BASE_URL}/patients/deleted`);
+			return { data: response.data, error: null };
 		} catch (error: any) {
-			setError(error.message);
+			return { data: null, error: error.message };
 		}
 	};
 
-	return { error, createPatient, getPatients, getPatientById, deletePatient };
+	const deletePatient = async (id: number) => {
+		try {
+			const response = await axios.delete(`${BASE_URL}/patients/${id}`);
+			return { data: response.data, error: null };
+		} catch (error: any) {
+			return { data: null, error: error.message };
+		}
+	};
+
+	const restorePatientById = async (id: number) => {
+		try {
+			const response = await axios.delete(`${BASE_URL}/patients/restore/${id}`);
+			return { data: response.data, error: null };
+		} catch (error: any) {
+			return { data: null, error: error.message };
+		}
+	};
+
+	return {
+		createPatient,
+		updatePatient,
+		getPatients,
+		getPatientById,
+		deletePatient,
+		deletedPatients,
+		restorePatientById,
+	};
 };
 
 export default usePatientAPI;

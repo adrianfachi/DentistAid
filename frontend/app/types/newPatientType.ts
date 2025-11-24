@@ -6,6 +6,5 @@ type newPatientType = {
 	birthDate: string;
 	occupation: string;
 	origin: string;
-	firstAppointment: string;
 	recurrence: string;
 };

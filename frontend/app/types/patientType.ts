@@ -12,6 +12,6 @@ type patientType = {
 	createdAt: Date;
 	updatedAt?: Date;
 	deletedAt?: string;
-	appointment: appointmentType[];
-	post: postType[];
+	appointments: appointmentType[];
+	posts: postType[];
 };

@@ -3,14 +3,20 @@
 import { FaWhatsapp } from "react-icons/fa";
 import { AiOutlineMail } from "react-icons/ai";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import usePatientAPI from "../_hooks/usePatientAPI";
+import { useState } from "react";
+import { ScaleLoader } from "react-spinners";
 
 
 type Props = {
   patient: patientType
+  onRestoreSuccess: (patientId: number) => void;
 }
 
-function PatientCard({ patient }: Props) {
+function PatientCard({ patient, onRestoreSuccess }: Props) {
+  const [isRestoreLoading, setIsRestoreLoading] = useState(false);
+  const { restorePatientById } = usePatientAPI();
 
   function getLastAppointment(appointments: appointmentType[] | undefined): Date | null {
     if (!appointments || appointments.length === 0) return null;
@@ -25,6 +31,23 @@ function PatientCard({ patient }: Props) {
     );
 
     return last.date;
+  }
+
+  const restorePatient = async () => {
+    setIsRestoreLoading(true)
+    try {
+      const { error } = await restorePatientById(patient.patientId);
+      if (error) {
+        toast.error("Erro ao restaurar", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+      } else {
+        toast.success("Paciente restaurado com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        onRestoreSuccess(patient.patientId);
+      }
+    } catch (error) {
+      return
+    } finally {
+      setIsRestoreLoading(false)
+    }
   }
 
   function getNextAppointment(appointments: appointmentType[] | undefined): Date | null {
@@ -64,11 +87,11 @@ function PatientCard({ patient }: Props) {
         <div className="text-center">
           <p className="font-bold text-lg">{patient.name}</p>
           <p>Última consulta:</p>
-          <p className="text-[#1b9e5f]">{getLastAppointment(patient.appointment)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
+          <p className="text-[#1b9e5f]">{getLastAppointment(patient.appointments)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
         </div>
         <div className="text-center">
           <p>Próxima consulta:</p>
-          <p className="text-[#0075EB]">{getNextAppointment(patient.appointment)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
+          <p className="text-[#0075EB]">{getNextAppointment(patient.appointments)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
         </div>
         <div className="text-center">
           <p>Consultas:</p>
@@ -85,7 +108,22 @@ function PatientCard({ patient }: Props) {
           WhatsApp
         </a>
       </div>
-      <Toaster position="top-right" />
+      {patient.deletedAt &&
+        <div className="relative">
+          <input type="button" value={`${!isRestoreLoading ? "Restaurar" : ""}`} className='w-30 py-1 bg-red-300 text-red-800 rounded-lg cursor-pointer' onClick={restorePatient} />
+
+          {isRestoreLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <ScaleLoader
+                color="var(--foreground)"
+                height={20}
+                width={4}
+                radius={2}
+                margin={2}
+              />
+            </div>
+          )}
+        </div>}
     </div>
   )
 }

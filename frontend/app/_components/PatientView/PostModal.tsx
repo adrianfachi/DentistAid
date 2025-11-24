@@ -5,7 +5,7 @@ import { MdClose } from 'react-icons/md';
 import ImageGalleryModal from './ImageGalleryModal';
 import usePostAPI from '@/app/_hooks/usePostAPI';
 import { ScaleLoader } from 'react-spinners';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 type Props = {
   isOpen: boolean;
@@ -14,36 +14,70 @@ type Props = {
   content?: string;
   image?: string[];
   id?: string
+  patientId?: number;
 }
 
 
-function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Props) {
+function PostModal({ isOpen, setIsOpen, update = false, content, image, id, patientId }: Props) {
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const refContent = useRef<HTMLTextAreaElement>(null);
 
-  const [images, setImages] = useState<string[]>(() => image ? [...image] : []);
+  const [images, setImages] = useState<string[]>([]);
+  const [imagesBase64, setImagesBase64] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { updatePost, error } = usePostAPI();
+  const { createPost, updatePost } = usePostAPI();
 
   useEffect(() => {
+    setImages([])
     setImages(image ? [...image] : []);
   }, [image]);
 
   const patchPost = async (id: string) => {
     setIsLoading(true);
     try {
-      const body: newPostType = {
-        content: refContent.current?.value || "",
-        image: images
-      };
-      await updatePost(id, body);
+      if (refContent.current) {
+        const body: newPostType = {
+          content: refContent.current.value || "",
+          image: images
+        };
+        const { error } = await updatePost(id, body);
 
-      if (error) {
-        toast.error("Erro ao atualizar postagem", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
-      } else {
-        toast.success("Postagem atualizada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        if (error) {
+          toast.error("Erro ao atualizar postagem", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        } else {
+          toast.success("Postagem atualizada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        }
       }
+
+    } catch (error) {
+      console.error("Erro ao atualizar postagem:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const postPost = async () => {
+    setIsLoading(true);
+    try {
+      if (refContent.current) {
+        const body: newPostType = {
+          content: refContent.current.value,
+          image: images
+        };
+        console.log(images)
+        const { error } = await createPost(patientId!, body);
+
+        if (error) {
+          toast.error("Erro ao criar postagem", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        } else {
+          toast.success("Postagem criada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+          setImages([])
+          setImagesBase64([])
+          refContent.current.value = ""
+        }
+      }
+
 
     } catch (error) {
       console.error("Erro ao atualizar postagem:", error);
@@ -59,7 +93,8 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = String(reader.result);
-        setImages((prev) => [...prev, base64]);
+        setImages((prev) => [...prev, base64.split(",")[1]]);
+        setImagesBase64((prev) => [...prev, base64]);
       };
       reader.onerror = (err) => {
         console.error('Erro ao ler arquivo', err);
@@ -68,7 +103,36 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
     });
   };
 
+  function detectImageMime(base64: string): string | null {
+    const firstBytes = atob(base64.slice(0, 20));
+
+    const bytes = firstBytes
+      .split("")
+      .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
+      .join("");
+
+    if (bytes.startsWith("ffd8ff")) return "image/jpeg";
+    if (bytes.startsWith("89504e47")) return "image/png";
+    if (bytes.startsWith("47494638")) return "image/gif";
+    if (bytes.startsWith("424d")) return "image/bmp";
+    if (bytes.startsWith("52494646")) return "image/webp";
+
+    return null;
+  }
+
+  useEffect(() => {
+    setImagesBase64([])
+    image?.map(i => {
+      if (!i.startsWith("data:")) {
+        const mimeType = detectImageMime(i);
+        console.log(`data:${mimeType || "image/png"};base64,${i}`)
+        setImagesBase64(e => e && [...e, `data:${mimeType || "image/png"};base64,${i}`])
+      }
+    })
+  }, [image])
+
   const removeImageAt = (index: number) => {
+    setImagesBase64(prev => prev.filter((_, i) => i !== index));
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -98,7 +162,6 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="absolute inset-0 bg-black opacity-50" onClick={setIsOpen} />
-
         <div className="relative p-4 bg-background rounded-md shadow-lg flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
           <MdClose onClick={setIsOpen} className="absolute right-2 top-2 cursor-pointer text-2xl" />
           <h1 className='font-bold text-xl'>{update ? "Alterar" : "Criar"} postagem</h1>
@@ -112,28 +175,28 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
           />
 
           <div className='flex justify-between items-end'>
-            {images.length > 0 && (
+            {imagesBase64.length > 0 && (
               <div
                 className='flex cursor-pointer relative w-28 h-20'
                 onClick={() => handleImageClick(0)}
               >
                 <div className='absolute left-0 top-0 w-full h-full border border-gray rounded-md overflow-hidden z-10'>
                   <img
-                    src={images[0]}
+                    src={imagesBase64[0]}
                     alt="Prévia da Imagem 1"
                     style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                   />
                 </div>
-                {images.length > 1 && (
+                {imagesBase64.length > 1 && (
                   <div className='absolute left-3 top-3 w-full h-full border border-gray rounded-md overflow-hidden opacity-80'>
                     <img
-                      src={images[1]}
+                      src={imagesBase64[1]}
                       alt="Prévia da Imagem 2"
                       style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                     />
-                    {images.length > 2 && (
+                    {imagesBase64.length > 2 && (
                       <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center text-white font-bold text-lg z-20">
-                        +{images.length - 2}
+                        +{imagesBase64.length - 2}
                       </div>
                     )}
                   </div>
@@ -165,8 +228,7 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
                   onClick={() => {
                     update ?
                       patchPost(id!)
-                      : {}
-                    setIsOpen()
+                      : postPost()
                   }}
                 />
                 {isLoading && (
@@ -186,9 +248,9 @@ function PostModal({ isOpen, setIsOpen, update = false, content, image, id }: Pr
         </div>
       </div>
 
-      {isImageGalleryOpen && images.length > 0 && (
+      {isImageGalleryOpen && imagesBase64.length > 0 && (
         <ImageGalleryModal
-          images={images}
+          images={imagesBase64}
           onClose={() => setIsImageGalleryOpen(false)}
           initialIndex={initialImageIndex}
           removeImage={removeImageAt}

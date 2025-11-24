@@ -1,4 +1,4 @@
 type newPostType = {
 	content: string;
-	image: string[];
+	image?: string[];
 };

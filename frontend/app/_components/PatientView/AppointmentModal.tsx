@@ -1,60 +1,122 @@
 'use client';
 
 import { useEffect, useState } from 'react'
-import FormInput from '../FormInput'
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { MdClose } from 'react-icons/md'
-import useAppontimentAPI from '@/app/_hooks/useAppointmentAPI';
 import toast from 'react-hot-toast';
+import useAppontimentAPI from '@/app/_hooks/useAppointmentAPI';
+import FormInput from '../FormInput'
+import { appointmentValidateSchema } from "../../_utils/appointmentValidade";
 
 type Props = {
   isOpen: boolean
   setIsOpen: () => void
   appointments?: appointmentType[]
   patientId: number
+  patientName?: string
+  content?: appointmentType
 }
 
-function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId }: Props) {
+type FormType = {
+  name?: string | undefined;
+  date: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, patientName, content }: Props) {
   const [isLoading, setIsLoading] = useState(false);
-  const [form, setForm] = useState<newAppointmentType>({
-    name: "",
-    date: "",
-    startsAt: "",
-    endsAt: "",
+  const { createAppointment, updateAppointment } = useAppontimentAPI()
+
+  const {
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isValid },
+  } = useForm({
+    resolver: yupResolver(appointmentValidateSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: {
+      name: content?.name || '',
+      date: content?.date || '',
+      startsAt: content?.startsAt || '',
+      endsAt: content?.endsAt || ''
+    }
   });
 
-  const updateField = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-  const { createAppointment, error } = useAppontimentAPI()
+  useEffect(() => {
+    if (content) {
+      reset({
+        name: content.name || '',
+        date: content.date || '',
+        startsAt: content.startsAt || '',
+        endsAt: content.endsAt || ''
+      });
+    }
+  }, [content, reset]);
 
-  const postAppointment = async () => {
+
+  const postAppointment = async (data: FormType) => {
     setIsLoading(true);
     try {
 
-      if (!form.date || !form.startsAt || !form.endsAt) {
-        toast.error("Por favor, preencha a data e os horários.", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } });
-        setIsLoading(false);
-        return;
-      }
+      const dateISO = new Date(data.date).toISOString().split('T')[0];
+      const fullStartsAt = `${dateISO}T${data.startsAt}:00.000`;
+      const fullEndsAt = `${dateISO}T${data.endsAt}:00.000`;
 
-      const fullStartsAt = `${form.date}T${form.startsAt}:00`;
-      const fullEndsAt = `${form.date}T${form.endsAt}:00`;
-      const body: newAppointmentType = {
-        name: form.name.length > 0 ? form.name : `Consulta nº ${appointments.length + 1}`,
-        date: form.date,
-        startsAt: fullStartsAt,
-        endsAt: fullEndsAt,
-      };
-      await createAppointment(patientId, body);
 
-      if (error) {
-        toast.error("Erro ao criar consulta", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+
+      if (content) {
+        const body: newAppointmentType = {
+          patientId: patientId,
+          name: data.name ? data.name : `Consulta ${patientName} nº ${appointments.length + 1}`,
+          date: dateISO,
+          startsAt: fullStartsAt,
+          endsAt: fullEndsAt,
+        };
+
+        const { error } = await updateAppointment(content.appointmentId, body);
+        if (error) {
+          toast.error("Erro ao alterar consulta", {
+            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
+          })
+        } else {
+          toast.success("Consulta alterada com sucesso!", {
+            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
+          })
+          reset();
+          setIsOpen();
+        }
       } else {
-        toast.success("Consulta criada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        const body: newAppointmentType = {
+          patientId: patientId,
+          name: data.name ? data.name : `Consulta ${patientName} nº ${appointments.length + 1}`,
+          date: dateISO,
+          startsAt: fullStartsAt,
+          endsAt: fullEndsAt,
+        };
+
+        const { error } = await createAppointment(body);
+        if (error) {
+          toast.error("Erro ao criar consulta", {
+            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
+          })
+        } else {
+          toast.success("Consulta criada com sucesso!", {
+            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
+          })
+          reset();
+          setIsOpen();
+        }
       }
+
+
 
     } catch (error) {
-      console.error("Erro ao atualizar postagem:", error);
+      console.error("Erro na submissão:", error);
+      toast.error("Erro inesperado ao criar consulta");
     } finally {
       setIsLoading(false);
     }
@@ -75,47 +137,96 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId }: P
     }
   }, [isOpen])
 
-
   if (!isOpen) return null
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black opacity-50" onClick={setIsOpen} />
-      <div className="relative p-4 bg-background rounded-md shadow-lg flex flex-col gap-3 overflow-auto scroll-style">
+      <div className="relative p-4 bg-background rounded-md shadow-lg flex flex-col gap-3 overflow-auto scroll-style max-w-md">
         <MdClose onClick={setIsOpen} className="absolute right-2 top-2 cursor-pointer text-2xl" />
-        <h1 className='font-bold text-xl'>Nova consulta</h1>
-        <FormInput
-          id="appointmentDate"
-          label="Data do consulta"
-          placeHolder="22/09/2025"
-          type="date"
-          onChange={(e) => updateField("date", e.target.value)}
-        />
+        <h1 className='font-bold text-xl'>{content ? 'Editar consulta' : 'Nova consulta'}</h1>
 
-        <FormInput
-          id='eventName'
-          label='Nome da consulta'
-          placeHolder={`Consulta nº ${appointments.length + 1}`}
-          type="text"
-          onChange={(e) => updateField("name", e.target.value)}
-        />
-        <div className='flex items-end gap-2'>
-          <FormInput
-            id="initialTime"
-            label="Horário"
-            placeHolder="Horário de Início"
-            type="text"
-            onChange={(e) => updateField("startsAt", e.target.value)}
+        <form onSubmit={handleSubmit(postAppointment)} className="flex flex-col gap-3">
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <FormInput
+                id="date"
+                label="Data da consulta"
+                placeHolder="22/09/2025"
+                initialValue={content?.date}
+                type="date"
+                {...field}
+                error={errors.date?.message}
+              />
+            )}
           />
-          <FormInput
-            id="endTime"
-            placeHolder="Horário de Fim"
-            type="text"
-            onChange={(e) => updateField("endsAt", e.target.value)}
+
+          <Controller
+            name="name"
+            control={control}
+            render={({ field }) => (
+              <FormInput
+                id='eventName'
+                label='Nome da consulta (opcional)'
+                initialValue={content?.name}
+                placeHolder={`Consulta ${patientName} nº ${appointments.length + 1}`}
+                type="text"
+                {...field}
+                error={errors.name?.message}
+              />
+            )}
           />
-        </div>
-        <div className='flex justify-end'>
-          <input type="button" value="Cadastrar consulta" className='bg-ligth-green w-fit px-3 py-1 rounded-md cursor-pointer' onClick={postAppointment} />
-        </div>
+
+          <div className='flex items-end gap-2'>
+            <Controller
+              name="startsAt"
+              control={control}
+              render={({ field }) => (
+                <FormInput
+                  id="initialTime"
+                  label="Horário de Início"
+                  placeHolder="09:00"
+                  type="text"
+                  isTimeInput={true}
+                  typeMask='time'
+                  initialValue={content?.startsAt}
+                  {...field}
+                  error={errors.startsAt?.message}
+                  className="w-50"
+                />
+              )}
+            />
+            <Controller
+              name="endsAt"
+              control={control}
+              render={({ field }) => (
+                <FormInput
+                  id="endTime"
+                  placeHolder="10:00"
+                  type="text"
+                  isTimeInput={true}
+                  typeMask='time'
+                  initialValue={content?.endsAt}
+                  {...field}
+                  error={errors.endsAt?.message}
+                  className="w-50"
+                />
+              )}
+            />
+          </div>
+          <div className='flex justify-end pt-2'>
+            <button
+              type="submit"
+              disabled={isLoading || !isValid}
+              className={`w-fit px-3 py-1 rounded-md cursor-pointer font-semibold transition duration-300 
+                            ${isLoading || !isValid ? 'bg-gray-400 cursor-not-allowed' : 'bg-ligth-green text-white hover:bg-green'}`}
+            >
+              {isLoading ? "Carregando..." : content ? "Atualizar consulta" : "Cadastrar consulta"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
