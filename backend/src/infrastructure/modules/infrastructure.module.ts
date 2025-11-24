@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DataBaseService } from '../services/database.service.js';
 import { PatientRepository } from '../repositories/patient.repository.js';
+import { PostRepository } from '../repositories/post.respository.js';
 
 
 @Module({
-    providers: [DataBaseService, PatientRepository],
-    exports: [PatientRepository]
+    providers: [DataBaseService, PatientRepository, PostRepository],
+    exports: [PatientRepository, PostRepository]
 })
 export class InfrastructureModule {}

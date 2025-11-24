@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common";
-import { CreatePatientDto } from "../../domain/patient-aggregate/dtos/create-patient.dto";
-import { PatientResponseDto } from "../../domain/patient-aggregate/dtos/patient-response.dto";
+import { CreatePatientDto } from "../../domain/patient-aggregate/dtos/patient/create-patient.dto";
+import { PatientResponseDto } from "../../domain/patient-aggregate/dtos/patient/patient-response.dto";
 import { PatientService } from "../../domain/patient-aggregate/services/patient.service";
-import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/update-patient.dto";
+import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/patient/update-patient.dto";
 
 
 @Controller("patients")
@@ -12,6 +12,11 @@ export class PatientController {
     @Get()
     async getPatients(): Promise<any> {
         return await this.patientService.showAllPatients();
+    }
+
+    @Get("deleted")
+    async getDeletedPatients(): Promise<PatientResponseDto[]> {
+        return await this.patientService.showDeletedPatients();
     }
 
     @Get(":id")
@@ -27,11 +32,6 @@ export class PatientController {
     @Get("cpf/:cpf")
     async getPatienByCpf(@Param("cpf") email: string): Promise<any> {
         return await this.patientService.showPatientByEmail(email);
-    }
-
-    @Get("deleted")
-    async getDeletedPatients(): Promise<PatientResponseDto[]> {
-        return await this.patientService.showDeletedPatients();
     }
 
     @Post()
@@ -51,19 +51,19 @@ export class PatientController {
         transform: true,
     }))
     async patchUser(
-        @Param(":id") id: number,
+        @Param("id") id: number,
         @Body() input: UpdatePatientDto
     ): Promise<PatientResponseDto> {
-        return await this.patientService.updatePatient(id, input);
+        return await this.patientService.updatePatient(+id, input);
     }
 
     @Delete(":id")
     async deleteUser(@Param("id") id: number): Promise<PatientResponseDto> {
-        return await this.patientService.removePatient(id);
+        return await this.patientService.removePatient(+id);
     }
 
     @Delete("restore/:id")
     async restoreUser(@Param("id") id: number): Promise<PatientResponseDto> {
-        return await this.patientService.reactivatePatient(id);
+        return await this.patientService.reactivatePatient(+id);
     }
 }
