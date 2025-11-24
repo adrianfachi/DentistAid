@@ -4,6 +4,6 @@ export class AppointmentResponseDto {
     date: Date;
     startsAt: Date;
     endsAt: Date;
-    cancelledAt?: Date;
+    cancelledAt: Date | null;
     patientId: number;
 }
