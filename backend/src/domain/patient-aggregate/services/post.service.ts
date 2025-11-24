@@ -13,7 +13,7 @@ export class PostService {
         private readonly postMapper: PostMapper
     ) {}
 
-    async showAllPosts(patientId: number): Promise<PostResponseDto[]> {
+    async showAllPostsByPatient(patientId: number): Promise<PostResponseDto[]> {
         let posts = await this.postRepository.fetchAllPostsByPatient(patientId);
 
         if(!posts) throw new NotFoundException("Error: could not find posts for the patient id.");
@@ -28,7 +28,7 @@ export class PostService {
         return this.postMapper.mapPrismaToPostResponse(post);
     }
 
-    async showAllDeletedPosts(patientId: number): Promise<PostResponseDto[]> {
+    async showAllDeletedPostsByPatient(patientId: number): Promise<PostResponseDto[]> {
         const posts = await this.postRepository.fetchDeletedPostsByPatient(patientId);
 
         if(!posts) throw new NotFoundException("Error: no posts have been deleted for given patient.");
