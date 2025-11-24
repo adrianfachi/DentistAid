@@ -12,7 +12,7 @@ export class PostRepository {
         private readonly patientRepository: PatientRepository
     ) {}
 
-    async fetchAllPosts(patientId: number): Promise<Post[] | null> {
+    async fetchAllPostsByPatient(patientId: number): Promise<Post[] | null> {
         const patient = await this.patientRepository.fetchPatientById(patientId);
 
         if(!patient) throw new NotFoundException("Error: could not find patient by Id.");
@@ -33,12 +33,21 @@ export class PostRepository {
         return post;
     }
 
-    async fetchDeletedPosts(patientId: number): Promise<Post[] | null> {
+    async fetchDeletedPostsByPatient(patientId: number): Promise<Post[] | null> {
         const patient = await this.patientRepository.fetchPatientById(patientId);
 
         if(!patient) throw new NotFoundException("Error: could not find patient by Id.");
         const posts = await this.databaseService.post.findMany({
             where: { patientId, deletedAt: { not: null } }
+        });
+
+        if(posts === undefined) throw new InternalServerErrorException("Database Error: could not fetch deleted posts for given patient.");
+        return posts;
+    }
+
+    async fetchAllDeletedPosts(): Promise<Post[] | null> {
+        const posts = await this.databaseService.post.findMany({
+            where: { deletedAt: { not: null } }
         });
 
         if(posts === undefined) throw new InternalServerErrorException("Database Error: could not fetch deleted posts for given patient.");
@@ -72,7 +81,7 @@ export class PostRepository {
         return post;
     }
 
-    deletePost(postId: string) {
+    deletePost(postId: string): Promise<Post | null> {
         const post = this.databaseService.post.update({
             where: { postId, deletedAt: null },
             data: { deletedAt: new Date() }
@@ -82,7 +91,7 @@ export class PostRepository {
         return post;
     }
 
-    restorePost(postId: string) {
+    restorePost(postId: string): Promise<Post | null> {
         const post = this.databaseService.post.update({
             where: { postId, deletedAt: { not: null } },
             data: { deletedAt: null }

@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { CreatePostDto } from "../dtos/post/create-post.dto";
-import { PostCreateInput } from "generated/prisma/models";
+import { PostCreateInput, PostUpdateInput } from "generated/prisma/models";
 import { Post } from "generated/prisma/client";
 import { PostResponseDto } from "../dtos/post/post-response.dto";
+import { UpdatePostDto } from "../dtos/post/update-content.dto";
 
 
 @Injectable()
@@ -15,7 +16,12 @@ export class PostMapper {
         };
     }
 
-    mapUpdatePostToPrisma() {}
+    mapUpdatePostToPrisma(dto: UpdatePostDto): PostUpdateInput {
+        return {
+            content: dto.content,
+            image: dto.image,
+        }
+    }
 
     mapPrismaToPostResponse(prisma: Post): PostResponseDto {
         return {
