@@ -42,6 +42,8 @@ export class AppointmentService {
     async addAppointment(input: CreateAppointmentDto): Promise<AppointmentResponseDto> {
         const dto = this.appointmentMapper.mapCreateAppointmentToPrisma(input);
         const appointment = await this.appointmentRepository.createAppointment(dto);
+        
+            // Add conflicting appointment checks here
 
         if(!appointment) throw new NotFoundException("Error: Unkwown error creating appointment.");
         return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
@@ -50,6 +52,8 @@ export class AppointmentService {
     async updateAppointment(appointmentId: string, input: UpdateAppointmentDto): Promise<AppointmentResponseDto> {
         const dto = this.appointmentMapper.mapUpdateAppointmentToPrisma(input);
         const appointment = await this.appointmentRepository.updateAppointment(appointmentId, dto);
+
+            // Add conflicting appointment checks here
 
         if(!appointment) throw new NotFoundException("Error: Unkwown error updating appointment.");
         return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
