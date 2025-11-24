@@ -16,6 +16,15 @@ export class AppointmentRepository {
         if(appointments === undefined) throw new InternalServerErrorException("Database Error: Unable to fetch appointments.");
         return appointments;
     }
+    
+    fetchAllAppointmentsOnDate(date: Date): Promise<Appointment[] | null> {
+        const appointments = this.databaseService.appointment.findMany({
+            where: { date, cancelledAt: null },
+        });
+
+        if(appointments === undefined) throw new InternalServerErrorException("Database Error: Unable to fetch appointments on date.");
+        return appointments;
+    }
 
     fetchAppointmentById(appointmentId: string): Promise<Appointment | null> {
         const appointment = this.databaseService.appointment.findUnique({

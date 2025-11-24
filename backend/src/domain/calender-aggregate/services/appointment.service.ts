@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AppointmentRepository } from "src/infrastructure/repositories/appointment.repository";
 import { AppointmentResponseDto } from "../dtos/appointment-response.dto";
 import { AppointmentMapper } from "../mappers/appointment.mapper";
@@ -40,23 +40,38 @@ export class AppointmentService {
     }
 
     async addAppointment(input: CreateAppointmentDto): Promise<AppointmentResponseDto> {
-        const dto = this.appointmentMapper.mapCreateAppointmentToPrisma(input);
-        const appointment = await this.appointmentRepository.createAppointment(dto);
+        const date = new Date(input.date);
+        const starts = new Date(input.startsAt);
+        const ends = new Date(input.endsAt);
         
-            // Add conflicting appointment checks here
-
-        if(!appointment) throw new NotFoundException("Error: Unkwown error creating appointment.");
-        return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
+        if(await this.validateSchedule(date, starts, ends)) {
+            const dto = this.appointmentMapper.mapCreateAppointmentToPrisma(input);
+            const appointment = await this.appointmentRepository.createAppointment(dto);
+        
+            if(!appointment) throw new NotFoundException("Error: Unkwown error creating appointment.");
+            return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
+        } else {
+            throw new BadRequestException("Error: appointment already scheduled at this time.");
+        }
     }
 
     async updateAppointment(appointmentId: string, input: UpdateAppointmentDto): Promise<AppointmentResponseDto> {
-        const dto = this.appointmentMapper.mapUpdateAppointmentToPrisma(input);
-        const appointment = await this.appointmentRepository.updateAppointment(appointmentId, dto);
+        const current = await this.appointmentRepository.fetchAppointmentById(appointmentId);
+        if(!current) throw new NotFoundException("Error: unable to find appointment by id.");
 
-            // Add conflicting appointment checks here
+        const date = input.date ? input.date : current.date;
+        const starts = input.startsAt ? input.startsAt : current.startsAt;
+        const ends = input.endsAt ? input.endsAt : current.endsAt;
+        
+        if(await this.validateSchedule(date, starts, ends, appointmentId)) {
+            const dto = this.appointmentMapper.mapUpdateAppointmentToPrisma(input);
+            const appointment = await this.appointmentRepository.updateAppointment(appointmentId, dto);
 
-        if(!appointment) throw new NotFoundException("Error: Unkwown error updating appointment.");
-        return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
+            if(!appointment) throw new NotFoundException("Error: Unkwown error updating appointment.");
+            return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
+        } else {
+            throw new BadRequestException("Error: appointment already scheduled at this time.");
+        }
     }
 
     async removeAppointment(appointmentId: string): Promise<AppointmentResponseDto> {
@@ -67,5 +82,23 @@ export class AppointmentService {
 
         if(!appointment) throw new NotFoundException("Error: could not find appointment to cancel.");
         return this.appointmentMapper.mapPrismaToAppointmentResponse(appointment);
+    }
+
+    async validateSchedule(date: Date, startTime: Date, endTime: Date, id?: string): Promise<boolean> {
+        if(startTime >= endTime) throw new BadRequestException("Error: Appointment start time must be before end time.");
+        if(date < new Date()) throw new BadRequestException("Error: Appointment date must be in the future.");
+        const schedule = await this.appointmentRepository.fetchAllAppointmentsOnDate(date);
+
+        if(!schedule) throw new NotFoundException("Error: unkown error fetching appointments on a given date.");
+        if(schedule.length = 0) return true;
+        schedule.forEach(a => {
+            const aStarts = new Date(a.startsAt);
+            const aEnds = new Date(a.endsAt);
+            const overlaps = startTime < aEnds && endTime > aStarts;
+            const isNotSelf = id !== a.appointmentId;
+
+            if(overlaps && isNotSelf) return false;
+        });
+        return true;
     }
 }
