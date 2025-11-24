@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsDate, IsDateString, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 
 export class CreateAppointmentDto {
@@ -8,17 +8,17 @@ export class CreateAppointmentDto {
     name: string;
     
     @IsNotEmpty()
-    @IsDateString()
+    @IsDate()
     @Type(() => Date)
     date: Date;
 
     @IsNotEmpty()
-    @IsDateString()
+    @IsDate()
     @Type(() => Date)
     startsAt: Date;
 
     @IsNotEmpty()
-    @IsDateString()
+    @IsDate()
     @Type(() => Date)
     endsAt: Date;
 
