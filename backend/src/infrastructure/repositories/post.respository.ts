@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, NotFoundException } from "@ne
 import { DataBaseService } from "../services/database.service";
 import { Post } from "generated/prisma/client";
 import { PatientRepository } from "./patient.repository";
-import { PostCreateInput } from "generated/prisma/models";
+import { PostCreateInput, PostUpdateInput } from "generated/prisma/models";
 
 
 @Injectable()
@@ -62,9 +62,33 @@ export class PostRepository {
         return post;
     }
 
-    updatePost(id: string, data: any) {}
+    updatePost(postId: string, data: Omit<PostUpdateInput, "patient">): Promise<Post | null> {
+        const post = this.databaseService.post.update({
+            where: { postId, deletedAt: null },
+            data: data
+        });
 
-    deletePost(id: string) {}
+        if(post === undefined) throw new InternalServerErrorException("Database Error: could not update post for given Id.");
+        return post;
+    }
 
-    restorePost(id: string) {}
+    deletePost(postId: string) {
+        const post = this.databaseService.post.update({
+            where: { postId, deletedAt: null },
+            data: { deletedAt: new Date() }
+        });
+
+        if(post === undefined) throw new InternalServerErrorException("Database Error: could not delete post for given Id.");
+        return post;
+    }
+
+    restorePost(postId: string) {
+        const post = this.databaseService.post.update({
+            where: { postId, deletedAt: { not: null } },
+            data: { deletedAt: null }
+        });
+
+        if(post === undefined) throw new InternalServerErrorException("Database Error: could not restore post for given Id.");
+        return post;
+    }
 }
