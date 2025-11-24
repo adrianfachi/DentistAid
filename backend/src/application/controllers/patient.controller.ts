@@ -51,7 +51,7 @@ export class PatientController {
         transform: true,
     }))
     async patchUser(
-        @Param(":id") id: number,
+        @Param("id") id: number,
         @Body() input: UpdatePatientDto
     ): Promise<PatientResponseDto> {
         return await this.patientService.updatePatient(+id, input);
