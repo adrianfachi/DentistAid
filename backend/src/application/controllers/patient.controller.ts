@@ -14,6 +14,11 @@ export class PatientController {
         return await this.patientService.showAllPatients();
     }
 
+    @Get("deleted")
+    async getDeletedPatients(): Promise<PatientResponseDto[]> {
+        return await this.patientService.showDeletedPatients();
+    }
+
     @Get(":id")
     async getPatientById(@Param("id") id: number): Promise<any> {
         return await this.patientService.showPatientById(+id);
@@ -27,11 +32,6 @@ export class PatientController {
     @Get("cpf/:cpf")
     async getPatienByCpf(@Param("cpf") email: string): Promise<any> {
         return await this.patientService.showPatientByEmail(email);
-    }
-
-    @Get("deleted")
-    async getDeletedPatients(): Promise<PatientResponseDto[]> {
-        return await this.patientService.showDeletedPatients();
     }
 
     @Post()
@@ -54,16 +54,16 @@ export class PatientController {
         @Param(":id") id: number,
         @Body() input: UpdatePatientDto
     ): Promise<PatientResponseDto> {
-        return await this.patientService.updatePatient(id, input);
+        return await this.patientService.updatePatient(+id, input);
     }
 
     @Delete(":id")
     async deleteUser(@Param("id") id: number): Promise<PatientResponseDto> {
-        return await this.patientService.removePatient(id);
+        return await this.patientService.removePatient(+id);
     }
 
     @Delete("restore/:id")
     async restoreUser(@Param("id") id: number): Promise<PatientResponseDto> {
-        return await this.patientService.reactivatePatient(id);
+        return await this.patientService.reactivatePatient(+id);
     }
 }
