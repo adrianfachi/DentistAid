@@ -45,7 +45,7 @@ export class PostRepository {
         return posts;
     }
 
-    async createPost(patientId: number, input: PostCreateInput): Promise<Post | null> {
+    async createPost(patientId: number, input: Omit<PostCreateInput, "patient">): Promise<Post | null> {
         const patient = await this.patientRepository.fetchPatientById(patientId);
 
         if(!patient) throw new NotFoundException("Error: could not find patient by Id.");

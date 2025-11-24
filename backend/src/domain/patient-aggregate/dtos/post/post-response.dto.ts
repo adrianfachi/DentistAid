@@ -3,6 +3,7 @@ export class PostResponseDto {
     content: string;
     image: string[];
     createdAt: Date;
-    deleteAt: Date;
+    updatedAt: Date;
+    deletedAt: Date | null;
     patientId: number;
 }
