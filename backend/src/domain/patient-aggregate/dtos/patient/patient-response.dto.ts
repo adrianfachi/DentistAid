@@ -1,5 +1,5 @@
-import { Appointment } from "../../calender-aggregate/entities/appointment.entity";
-import { Post } from "../entities/post.entity";
+import { Appointment } from "../../../calender-aggregate/entities/appointment.entity";
+import { Post } from "../../entities/post.entity";
 
 
 export class PatientResponseDto {

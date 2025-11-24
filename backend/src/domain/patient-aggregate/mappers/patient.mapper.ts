@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { Patient } from "generated/prisma/client.js";
-import { PatientResponseDto } from "../dtos/patient-response.dto.js";
-import { CreatePatientDto } from "../dtos/create-patient.dto.js";
+import { PatientResponseDto } from "../dtos/patient/patient-response.dto.js";
+import { CreatePatientDto } from "../dtos/patient/create-patient.dto.js";
 import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models.js";
-import { UpdatePatientDto } from "../dtos/update-patient.dto.js";
+import { UpdatePatientDto } from "../dtos/patient/update-patient.dto.js";
 
 
 @Injectable()

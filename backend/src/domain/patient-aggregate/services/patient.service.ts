@@ -1,9 +1,9 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { PatientRepository } from "../../../infrastructure/repositories/patient.repository";
 import { PatientMapper } from "../mappers/patient.mapper";
-import { PatientResponseDto } from "../dtos/patient-response.dto";
-import { CreatePatientDto } from "../dtos/create-patient.dto";
-import { UpdatePatientDto } from "../dtos/update-patient.dto";
+import { PatientResponseDto } from "../dtos/patient/patient-response.dto";
+import { CreatePatientDto } from "../dtos/patient/create-patient.dto";
+import { UpdatePatientDto } from "../dtos/patient/update-patient.dto";
 
 
 @Injectable()

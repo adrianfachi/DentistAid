@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DataBaseService } from "../services/database.service.js";
 import { Appointment, Patient, Post } from "generated/prisma/browser.js";
 import { PatientCreateInput, PatientUpdateInput } from "generated/prisma/models.js";
-import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/update-patient.dto.js";
+import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/patient/update-patient.dto.js";
 
 
 @Injectable()

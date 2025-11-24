@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common";
-import { CreatePatientDto } from "../../domain/patient-aggregate/dtos/create-patient.dto";
-import { PatientResponseDto } from "../../domain/patient-aggregate/dtos/patient-response.dto";
+import { CreatePatientDto } from "../../domain/patient-aggregate/dtos/patient/create-patient.dto";
+import { PatientResponseDto } from "../../domain/patient-aggregate/dtos/patient/patient-response.dto";
 import { PatientService } from "../../domain/patient-aggregate/services/patient.service";
-import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/update-patient.dto";
+import { UpdatePatientDto } from "src/domain/patient-aggregate/dtos/patient/update-patient.dto";
 
 
 @Controller("patients")
