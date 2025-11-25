@@ -11,7 +11,14 @@ export class PatientRepository {
     async fetchPatientById(id: number): Promise<Patient & { appointments: Appointment[] } & { posts: Post[] } | null> {
         const patient = await this.databaseService.patient.findUnique({
             where: { patientId: id, deletedAt: null },
-            include: { posts: true, appointments: true },
+            include: {
+                posts: {
+                    where: { deletedAt: null },
+                },
+                appointments: {
+                    where: { cancelledAt: null },
+                },
+            },
         });
 
         if(patient === undefined) throw new InternalServerErrorException("Server Error: could not fetch patient by Id");

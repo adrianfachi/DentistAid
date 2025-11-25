@@ -11,7 +11,7 @@ type Props = {
 
 function PatientAppointment({ appointments, patientId, patientName }: Props) {
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<appointmentType>();
+  const [selectedAppointment, setSelectedAppointment] = useState<appointmentType | undefined>(undefined); 
 
   const normalizeAppointment = (a: appointmentType) => {
     const dateISO = new Date(a.date).toISOString().split("T")[0];
@@ -40,34 +40,33 @@ function PatientAppointment({ appointments, patientId, patientName }: Props) {
     setSelectedAppointment(normalizeAppointment(appointment));
     setIsOpenModal(true);
   };
-  useEffect(() => {
-    if (selectedAppointment) {
-      console.log("Atualizou:", selectedAppointment)
-    }
-  }, [selectedAppointment])
+
+
 
   return (
-    <div className='min-w-1/3'>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold">Controle de consultas</h3>
+    <div className='min-w-1/3 p-4 bg-background rounded-xl shadow-lg border border-background-contrast/50'>
+      <div className="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 className="text-xl font-bold text-foreground">Consultas Agendadas</h3>
       </div>
-
       {appointments && appointments.length !== 0 ? (
-        <div className='flex gap-4 flex-col py-5 px-2 shadow-blue-soft rounded-xl min-w-fit scroll-style overflow-auto' style={{ height: '300px' }}>
-          {appointments.sort((a, b) => a.startsAt.localeCompare(b.startsAt)).map((a) => (
+        <div className='flex gap-2 flex-col rounded-xl scroll-style overflow-auto' style={{ maxHeight: '300px' }}>
+          {appointments.sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime()).map((a) => (
             <div
               key={a.appointmentId}
-              className='border-gray flex justify-between gap-3 border-b cursor-pointer hover:bg-background-contrast p-2 rounded transition'
+              className='bg-background-standard flex justify-between items-center p-3 rounded-lg border border-background-contrast cursor-pointer transition duration-150 hover:bg-background-contrast/70 hover:shadow-md'
               onClick={() => handleAppointmentClick(a)}
             >
-              <p className="font-medium">{a.name}</p>
-              <p>{new Date(a.date).toLocaleDateString("pt-br", { timeZone: 'UTC' })}</p>
+              <p className="font-semibold text-foreground">{new Date(a.date).toLocaleDateString("pt-br", { timeZone: 'UTC' })}</p>
+              <div className='flex gap-3 text-sm text-gray'>
+                <p>Início: {new Date(a.startsAt).toLocaleTimeString("pt-br", { hour: '2-digit', minute: '2-digit' })}</p>
+                <p>Fim: {new Date(a.endsAt).toLocaleTimeString("pt-br", { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className=" mb-3">Nenhuma consulta encontrada</p>
+        <div className="text-center py-10 border border-dashed border-gray/50 rounded-lg">
+          <p className="text-gray italic">Nenhuma consulta encontrada para {patientName}.</p>
         </div>
       )}
 
@@ -86,4 +85,4 @@ function PatientAppointment({ appointments, patientId, patientName }: Props) {
   )
 }
 
-export default PatientAppointment
+export default PatientAppointment;

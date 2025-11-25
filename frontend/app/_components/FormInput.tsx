@@ -22,8 +22,15 @@ function FormInput({ id, label, placeHolder, type, initialValue, editable = true
   const inputType = isTimeInput && isFocused ? typeMask : type;
 
   return (
-    <div className={`flex flex-col gap-0.5 ${!editable && "text-gray"}`}>
-      {label && <label htmlFor={id}>{label}</label>}
+    <div className={`flex flex-col gap-1 w-full ${!editable ? "text-gray-500" : "text-foreground"}`}>
+      {label && (
+        <label 
+          htmlFor={id} 
+          className="text-sm font-medium"
+        >
+          {label}
+        </label>
+      )}
       <input
         id={id}
         placeholder={placeHolder}
@@ -36,9 +43,17 @@ function FormInput({ id, label, placeHolder, type, initialValue, editable = true
           setValue(e.target.value);
         }}
         readOnly={!editable}
-        className={`border border-background-contrast p-2 rounded-md bg-transparent ${className}`}
+        className={`
+          w-full py-2 px-3 rounded-lg text-sm transition duration-150
+          ${!editable
+            ? 'bg-background-contrast/50 border border-transparent cursor-default'
+            : 'bg-background-standard border border-background-contrast focus:ring-1 focus:ring-color-blue'
+          }
+          ${error ? 'border-red-500' : ''}
+          ${className}
+        `}
       />
-      {error && <div className="text-red-500 text-[.7rem]">{error}</div>}
+      {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
     </div>
   )
 }

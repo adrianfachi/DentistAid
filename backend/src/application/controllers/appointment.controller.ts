@@ -21,7 +21,7 @@ export class AppointmentController {
 
     @Get("patient/:patientId")
     async getAppointmentsByPatientId(@Param("patientId") patientId: number): Promise<AppointmentResponseDto[]> {
-        return await this.appointmentService.showAppointmentsByPatientId(patientId);
+        return await this.appointmentService.showAppointmentsByPatientId(+patientId);
     }
 
     @Post()

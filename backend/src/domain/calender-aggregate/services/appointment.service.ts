@@ -59,11 +59,10 @@ export class AppointmentService {
   async addAppointment(
     input: CreateAppointmentDto,
   ): Promise<AppointmentResponseDto> {
-    const date = new Date(input.date);
-    const starts = new Date(input.startsAt);
-    const ends = new Date(input.endsAt);
+    const startsAt = new Date(input.startsAt);
+    const endsAt = new Date(input.endsAt);
 
-    if (await this.validateSchedule(date, starts, ends)) {
+    if (await this.validateSchedule(startsAt, endsAt)) {
       const dto = this.appointmentMapper.mapCreateAppointmentToPrisma(input);
       const appointment =
         await this.appointmentRepository.createAppointment(dto);
@@ -89,11 +88,10 @@ export class AppointmentService {
     if (!current)
       throw new NotFoundException('Error: unable to find appointment by id.');
 
-    const date = input.date ? input.date : current.date;
-    const starts = input.startsAt ? input.startsAt : current.startsAt;
-    const ends = input.endsAt ? input.endsAt : current.endsAt;
+    const starts = input.startsAt ? new Date(input.startsAt) : current.startsAt;
+    const ends = input.endsAt ? new Date(input.endsAt) : current.endsAt;
 
-    if (await this.validateSchedule(date, starts, ends, appointmentId)) {
+    if (await this.validateSchedule(starts, ends, appointmentId)) {
       const dto = this.appointmentMapper.mapUpdateAppointmentToPrisma(input);
       const appointment = await this.appointmentRepository.updateAppointment(
         appointmentId,
@@ -132,38 +130,44 @@ export class AppointmentService {
   }
 
   async validateSchedule(
-    date: Date,
-    startTime: Date,
-    endTime: Date,
+    newStartsAt: Date,
+    newEndsAt: Date,
     id?: string,
   ): Promise<boolean> {
-    if (startTime >= endTime)
+    if (newStartsAt >= newEndsAt) {
       throw new BadRequestException(
         'Error: Appointment start time must be before end time.',
       );
-    if (date < new Date())
+    }
+
+    const normalizedDate = new Date(newStartsAt);
+    normalizedDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (normalizedDate < today) {
       throw new BadRequestException(
-        'Error: Appointment date must be in the future.',
+        'Error: Appointment date must be today or in the future.',
       );
+    }
     const schedule =
-      await this.appointmentRepository.fetchAllAppointmentsOnDate(date);
-
-    if (!schedule)
-      throw new NotFoundException(
-        'Error: unkown error fetching appointments on a given date.',
+      await this.appointmentRepository.fetchAllAppointmentsOnDate(
+        normalizedDate,
       );
-    if ((schedule.length = 0)) return true;
-    schedule.forEach((a) => {
-      const aStarts = new Date(a.startsAt);
-      const aEnds = new Date(a.endsAt);
-      const overlaps =
-        (startTime >= aStarts && startTime < aEnds) ||
-        (endTime > aStarts && endTime <= aEnds) ||
-        (startTime <= aStarts && endTime >= aEnds);
-      const isNotSelf = id !== a.appointmentId;
 
-      if (overlaps && isNotSelf) return false;
-    });
+    if (!schedule || schedule.length === 0) return true;
+
+    for (const a of schedule) {
+      if (id && id === a.appointmentId) continue;
+
+      const overlaps = newStartsAt < a.endsAt && newEndsAt > a.startsAt;
+
+      if (overlaps) {
+        return false;
+      }
+    }
+
     return true;
   }
 }

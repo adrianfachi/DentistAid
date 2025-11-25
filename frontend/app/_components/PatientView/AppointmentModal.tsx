@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import useAppontimentAPI from '@/app/_hooks/useAppointmentAPI';
 import FormInput from '../FormInput'
 import { appointmentValidateSchema } from "../../_utils/appointmentValidade";
+import DeleteModal from '../DeleteModal';
+import { ScaleLoader } from 'react-spinners';
 
 type Props = {
   isOpen: boolean
@@ -16,6 +18,7 @@ type Props = {
   patientId: number
   patientName?: string
   content?: appointmentType
+  onDelete?: () => void
 }
 
 type FormType = {
@@ -25,9 +28,11 @@ type FormType = {
   endsAt: string;
 }
 
-function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, patientName, content }: Props) {
+function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, patientName, content, onDelete }: Props) {
   const [isLoading, setIsLoading] = useState(false);
-  const { createAppointment, updateAppointment } = useAppontimentAPI()
+  const { createAppointment, updateAppointment, deleteAppointment } = useAppontimentAPI()
+  const [isLoadingDelete, setIsLoadingDelete] = useState<boolean>(false);
+  const [isOpenModalDelete, setIsOpenModalDelete] = useState<boolean>(false);
 
   const {
     handleSubmit,
@@ -67,21 +72,27 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
       const fullEndsAt = `${dateISO}T${data.endsAt}:00.000`;
 
 
+      const commonBody: newAppointmentType = {
+        patientId: patientId,
+        name: data.name ? data.name : `Consulta ${patientName} nº ${appointments.length + 1}`,
+        date: dateISO,
+        startsAt: fullStartsAt,
+        endsAt: fullEndsAt,
+      };
 
       if (content) {
-        const body: newAppointmentType = {
-          patientId: patientId,
-          name: data.name ? data.name : `Consulta ${patientName} nº ${appointments.length + 1}`,
-          date: dateISO,
-          startsAt: fullStartsAt,
-          endsAt: fullEndsAt,
-        };
-
-        const { error } = await updateAppointment(content.appointmentId, body);
+        // Atualizar Consulta
+        const { error } = await updateAppointment(content.appointmentId, commonBody);
         if (error) {
-          toast.error("Erro ao alterar consulta", {
-            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
-          })
+          let messageError = "Erro ao alterar consulta";
+
+          if (error === "Error: appointment already scheduled at this time.") {
+            messageError = "Já existe uma consulta nesse horário";
+          } else if (error === "Error: Appointment date must be today or in the future.") {
+            messageError = "Você não pode criar uma consulta no passado";
+          }
+
+          toast.error(messageError, { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
         } else {
           toast.success("Consulta alterada com sucesso!", {
             style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
@@ -90,19 +101,18 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
           setIsOpen();
         }
       } else {
-        const body: newAppointmentType = {
-          patientId: patientId,
-          name: data.name ? data.name : `Consulta ${patientName} nº ${appointments.length + 1}`,
-          date: dateISO,
-          startsAt: fullStartsAt,
-          endsAt: fullEndsAt,
-        };
-
-        const { error } = await createAppointment(body);
+        // Criar Nova Consulta
+        const { error } = await createAppointment(commonBody);
         if (error) {
-          toast.error("Erro ao criar consulta", {
-            style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
-          })
+          let messageError = "Erro ao criar consulta";
+
+          if (error === "Error: appointment already scheduled at this time.") {
+            messageError = "Já existe uma consulta nesse horário";
+          } else if (error === "Error: Appointment date must be today or in the future.") {
+            messageError = "Você não pode criar uma consulta no passado";
+          }
+
+          toast.error(messageError, { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
         } else {
           toast.success("Consulta criada com sucesso!", {
             style: { backgroundColor: "var(--background)", color: "var(--foreground)" }
@@ -112,8 +122,6 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
         }
       }
 
-
-
     } catch (error) {
       console.error("Erro na submissão:", error);
       toast.error("Erro inesperado ao criar consulta");
@@ -121,6 +129,28 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
       setIsLoading(false);
     }
   };
+
+  const deleteAppointmentHandle = async () => {
+    setIsLoadingDelete(true);
+    try {
+
+      const { error } = await deleteAppointment(content?.appointmentId!);
+
+      if (error) {
+        toast.error("Erro ao deletar consulta", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+      } else {
+        toast.success("Consulta deletada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+        onDelete && onDelete()
+        setIsOpenModalDelete(false)
+        setIsOpen()
+      }
+
+    } catch (error) {
+      console.error("Erro ao deletar consulta:", error);
+    } finally {
+      setIsLoadingDelete(false);
+    }
+  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -140,21 +170,28 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black opacity-50" onClick={setIsOpen} />
-      <div className="relative p-4 bg-background rounded-md shadow-lg flex flex-col gap-3 overflow-auto scroll-style max-w-md">
-        <MdClose onClick={setIsOpen} className="absolute right-2 top-2 cursor-pointer text-2xl" />
-        <h1 className='font-bold text-xl'>{content ? 'Editar consulta' : 'Nova consulta'}</h1>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={setIsOpen} />
+      
+      <div className="relative p-6 bg-background rounded-xl shadow-2xl flex flex-col gap-5 w-full max-w-lg">
+        
+        <MdClose 
+          onClick={setIsOpen} 
+          className="absolute right-4 top-4 cursor-pointer text-3xl text-foreground hover:text-red-500 transition" 
+        />
+        
+        <h1 className='font-extrabold text-2xl border-b pb-2'>{content ? 'Editar Consulta' : 'Nova Consulta'}</h1>
 
-        <form onSubmit={handleSubmit(postAppointment)} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit(postAppointment)} className="flex flex-col gap-4">
+          
           <Controller
             name="date"
             control={control}
             render={({ field }) => (
               <FormInput
                 id="date"
-                label="Data da consulta"
-                placeHolder="22/09/2025"
+                label="Data da Consulta"
+                placeHolder="Ex: 22/09/2025"
                 initialValue={content?.date}
                 type="date"
                 {...field}
@@ -169,7 +206,7 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
             render={({ field }) => (
               <FormInput
                 id='eventName'
-                label='Nome da consulta (opcional)'
+                label='Nome da Consulta (opcional)'
                 initialValue={content?.name}
                 placeHolder={`Consulta ${patientName} nº ${appointments.length + 1}`}
                 type="text"
@@ -179,14 +216,14 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
             )}
           />
 
-          <div className='flex items-end gap-2'>
+          <div className='flex gap-4'>
             <Controller
               name="startsAt"
               control={control}
               render={({ field }) => (
                 <FormInput
                   id="initialTime"
-                  label="Horário de Início"
+                  label="Início"
                   placeHolder="09:00"
                   type="text"
                   isTimeInput={true}
@@ -194,7 +231,7 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
                   initialValue={content?.startsAt}
                   {...field}
                   error={errors.startsAt?.message}
-                  className="w-50"
+                  className="flex-1"
                 />
               )}
             />
@@ -204,6 +241,7 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
               render={({ field }) => (
                 <FormInput
                   id="endTime"
+                  label="Fim"
                   placeHolder="10:00"
                   type="text"
                   isTimeInput={true}
@@ -211,23 +249,59 @@ function AppointmentModal({ isOpen, setIsOpen, appointments = [], patientId, pat
                   initialValue={content?.endsAt}
                   {...field}
                   error={errors.endsAt?.message}
-                  className="w-50"
+                  className="flex-1"
                 />
               )}
             />
           </div>
-          <div className='flex justify-end pt-2'>
-            <button
-              type="submit"
-              disabled={isLoading || !isValid}
-              className={`w-fit px-3 py-1 rounded-md cursor-pointer font-semibold transition duration-300 
-                            ${isLoading || !isValid ? 'bg-gray-400 cursor-not-allowed' : 'bg-ligth-green text-white hover:bg-green'}`}
-            >
-              {isLoading ? "Carregando..." : content ? "Atualizar consulta" : "Cadastrar consulta"}
-            </button>
+          
+          <div className='flex justify-end pt-3 gap-3'>
+            {content && (
+              <input 
+                type="button" 
+                value="Deletar Consulta" 
+                className='bg-red-600 text-white px-4 py-2 rounded-lg cursor-pointer font-semibold shadow-md hover:bg-red-700 transition' 
+                onClick={() => setIsOpenModalDelete(true)} 
+              />
+            )}
+            
+            <div className='relative'>
+              <button
+                type="submit"
+                disabled={isLoading || !isValid}
+                className={`
+                    w-48 py-2 rounded-lg font-semibold transition duration-200 shadow-md
+                    ${isLoading
+                      ? 'bg-green cursor-not-allowed text-transparent'
+                      : 'bg-green text-white cursor-pointer hover:bg-green/90'
+                    }
+                  `}
+              >
+                {content ? "Atualizar Consulta" : "Cadastrar Consulta"}
+              </button>
+              
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <ScaleLoader
+                    color="white" 
+                    height={20}
+                    width={4}
+                    radius={2}
+                    margin={2}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </form>
       </div>
+      
+      <DeleteModal 
+        isLoading={isLoadingDelete} 
+        isOpen={isOpenModalDelete} 
+        onDelete={() => deleteAppointmentHandle()} 
+        setIsOpen={() => setIsOpenModalDelete(false)} 
+      />
     </div>
   )
 }

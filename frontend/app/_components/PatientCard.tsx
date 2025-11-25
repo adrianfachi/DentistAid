@@ -5,8 +5,9 @@ import { AiOutlineMail } from "react-icons/ai";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import usePatientAPI from "../_hooks/usePatientAPI";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScaleLoader } from "react-spinners";
+import useAppontimentAPI from "../_hooks/useAppointmentAPI";
 
 
 type Props = {
@@ -16,21 +17,42 @@ type Props = {
 
 function PatientCard({ patient, onRestoreSuccess }: Props) {
   const [isRestoreLoading, setIsRestoreLoading] = useState(false);
+  const [appointments, setAppointment] = useState<appointmentType[] | null>(null)
   const { restorePatientById } = usePatientAPI();
+  const { getApponitmentsById } = useAppontimentAPI();
+  const recurrenceMapToPortuguese: Record<string, string> = {
+    'Monthly': 'Mensal',
+    'Bimonthly': 'Bimestral',
+    'Quarterly': 'Trimestral',
+    'Semiannual': 'Semestral',
+    'Annual': 'Anual',
+  };
 
-  function getLastAppointment(appointments: appointmentType[] | undefined): Date | null {
+  useEffect(() => {
+    try {
+      const fetchAppointment = async () => {
+        const { error, data } = await getApponitmentsById(patient.patientId);
+        if (!error) setAppointment(data);
+      }
+      fetchAppointment();
+    } catch (error) {
+
+    }
+  }, [patient.patientId]) // Adicionei patient.patientId à lista de dependências
+
+  function getLastAppointment(): Date | null {
     if (!appointments || appointments.length === 0) return null;
 
     const now = new Date();
 
-    const filtered = appointments.filter(a => a.date <= now);
+    const filtered = appointments.filter(a => new Date(a.date) <= now);
     if (filtered.length === 0) return null;
 
     const last = filtered.reduce((latest, current) =>
-      current.date > latest.date ? current : latest
+      new Date(current.date) > new Date(latest.date) ? current : latest
     );
 
-    return last.date;
+    return new Date(last.date);
   }
 
   const restorePatient = async () => {
@@ -50,20 +72,24 @@ function PatientCard({ patient, onRestoreSuccess }: Props) {
     }
   }
 
-  function getNextAppointment(appointments: appointmentType[] | undefined): Date | null {
+  function getNextAppointment(): Date | null {
     if (!appointments || appointments.length === 0) return null;
 
     const now = new Date();
 
-    const filtered = appointments.filter(a => a.date >= now);
+    // Ajusta 'now' para o início do dia para incluir consultas de hoje
+    now.setHours(0, 0, 0, 0); 
+
+    const filtered = appointments.filter(a => new Date(a.date) >= now);
     if (filtered.length === 0) return null;
 
     const next = filtered.reduce((earliest, current) =>
-      current.date < earliest.date ? current : earliest
+      new Date(current.date) < new Date(earliest.date) ? current : earliest
     );
 
-    return next.date;
+    return new Date(next.date);
   }
+
   const colors = ["bg-ligth-green", "bg-dark-green", "bg-green"];
   const bgClass = colors[patient.patientId % 3];
   const index = patient.name.trim().lastIndexOf(" ")
@@ -71,7 +97,7 @@ function PatientCard({ patient, onRestoreSuccess }: Props) {
 
   function copyEmail() {
     if (!patient.email || patient.email.length <= 3) {
-      toast.error("Erro ao copiar email", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
+      toast.error("Email inválido", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
       return
     }
     navigator.clipboard.writeText(patient.email);
@@ -79,43 +105,72 @@ function PatientCard({ patient, onRestoreSuccess }: Props) {
   }
 
   return (
-    <div className="w-fit p-4 rounded-lg hover:bg-background-contrast transition-colors duration-200 flex flex-col items-center gap-3 text-[0.7rem]">
-      <Link className="flex flex-col items-center gap-3 cursor-pointer" href={{ pathname: "/patient", search: `?search=${patient.patientId}` }}>
-        <div className={`${bgClass} w-12 h-12 flex justify-center text-2xl items-center rounded-full text-white font-bold`}>
+    <div className={`
+      w-full sm:w-60 min-h-64 p-5 rounded-xl shadow-lg border border-background-contrast/50 flex flex-col items-center gap-4 text-sm bg-background hover:shadow-xl transition-all duration-300
+    `}>
+      <Link className="flex flex-col items-center gap-4 cursor-pointer w-full" href={{ pathname: "/patient", search: `?search=${patient.patientId}` }}>
+        <div className={`${bgClass} w-16 h-16 flex justify-center text-2xl items-center rounded-full text-white font-bold shadow-md`}>
           {initialNameLetter}
         </div>
-        <div className="text-center">
-          <p className="font-bold text-lg">{patient.name}</p>
-          <p>Última consulta:</p>
-          <p className="text-[#1b9e5f]">{getLastAppointment(patient.appointments)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
+        
+        <div className="text-center w-full">
+          <p className="font-extrabold text-xl truncate mb-1">{patient.name}</p>
+          <div className="flex justify-between w-full border-t border-background-contrast/30 pt-2">
+            <div>
+              <p className="text-xs font-medium text-gray-500">Última Consulta:</p>
+              <p className="text-sm font-semibold text-color-green">
+                {getLastAppointment()?.toLocaleDateString("pt-BR") ?? "Nenhuma"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Próxima Consulta:</p>
+              <p className="text-sm font-semibold text-color-blue">
+                {getNextAppointment()?.toLocaleDateString("pt-BR") ?? "Nenhuma"}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="text-center">
-          <p>Próxima consulta:</p>
-          <p className="text-[#0075EB]">{getNextAppointment(patient.appointments)?.toLocaleDateString("pt-BR") ?? "Nenhuma"}</p>
-        </div>
-        <div className="text-center">
-          <p>Consultas:</p>
-          <p className="text-[#11C76F] capitalize">{patient.recurrence}</p>
+        
+        <div className="text-center mt-2 border-t w-full pt-2">
+          <p className="text-xs font-medium text-gray-500">Recorrência:</p>
+          <p className="text-sm font-semibold text-foreground capitalize">
+            {recurrenceMapToPortuguese[patient.recurrence as keyof typeof recurrenceMapToPortuguese] ?? patient.recurrence}
+          </p>
         </div>
       </Link>
-      <div className="text-sm flex gap-3">
-        <div className="flex gap-0.5 items-center cursor-pointer p-1" onClick={copyEmail}>
-          <AiOutlineMail />
-          Copiar Email
-        </div>
-        <a className="flex gap-0.5 items-center cursor-pointer p-1" href={`https://wa.me/${patient.telephone}`} target="_blank">
-          <FaWhatsapp />
+      
+      <div className={`text-sm flex gap-3 w-full justify-center ${patient.deletedAt ? 'pt-2 border-t border-red-300' : 'pt-2 border-t border-background-contrast/50'}`}>
+        <button 
+          className="flex gap-1 items-center cursor-pointer p-2 rounded-lg bg-background-contrast"
+          onClick={copyEmail}
+        >
+          <AiOutlineMail className="text-base" />
+          Email
+        </button>
+        <a 
+          className="flex gap-1 items-center cursor-pointer p-2 rounded-lg text-white bg-background-contrast" 
+          href={`https://wa.me/${patient.telephone}`} 
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <FaWhatsapp className="text-base" />
           WhatsApp
         </a>
       </div>
-      {patient.deletedAt &&
-        <div className="relative">
-          <input type="button" value={`${!isRestoreLoading ? "Restaurar" : ""}`} className='w-30 py-1 bg-red-300 text-red-800 rounded-lg cursor-pointer' onClick={restorePatient} />
-
+      
+      {patient.deletedAt && (
+        <div className="relative w-full mt-2">
+          <input 
+            type="button" 
+            value={isRestoreLoading ? "" : "Restaurar Paciente"} 
+            className='w-full py-2 bg-red-500 text-white rounded-lg cursor-pointer font-semibold shadow-md hover:bg-red-600 transition disabled:opacity-50' 
+            onClick={restorePatient}
+            disabled={isRestoreLoading}
+          />
           {isRestoreLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <ScaleLoader
-                color="var(--foreground)"
+                color="white" 
                 height={20}
                 width={4}
                 radius={2}
@@ -123,7 +178,8 @@ function PatientCard({ patient, onRestoreSuccess }: Props) {
               />
             </div>
           )}
-        </div>}
+        </div>
+      )}
     </div>
   )
 }

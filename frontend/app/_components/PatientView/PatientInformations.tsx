@@ -8,7 +8,7 @@ import { ScaleLoader } from 'react-spinners';
 
 type Props = {
   patient: patientType;
-  editing: boolean; // controla modo de edição
+  editing: boolean;
 }
 
 function PatientInformations({ patient, editing }: Props) {
@@ -77,7 +77,6 @@ function PatientInformations({ patient, editing }: Props) {
         toast.success("Paciente alterado com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
       }
     } catch (e) {
-
       return
     } finally {
       setIsLoading(false);
@@ -85,26 +84,27 @@ function PatientInformations({ patient, editing }: Props) {
   }
 
   return (
-    <div className="w-full">
-      <h3 className="text-lg font-semibold mb-3">Informações do paciente</h3>
+    <div className="w-full p-4 bg-background rounded-xl shadow-lg border border-background-contrast/50">
+      <h3 className="text-xl font-bold mb-5 border-b pb-2">Informações do Paciente</h3>
 
       <div className="flex flex-col gap-6 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full">
-          <div className="flex flex-col gap-3 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 w-full">
+
+          <div className="flex flex-col gap-6 w-full">
             <FormInput
               id="birth"
-              label="Data de nascimento"
+              label="Data de Nascimento"
               placeHolder="22/09/1999"
               type="date"
               initialValue={patient.birthDate ? patient.birthDate.toISOString().split('T')[0] : ''}
               editable={editing}
-              onChange={(e) => updateField("birth", e.target.value)}
+              onChange={(e) => updateField("birthDate", e.target.value)}
             />
             <FormInput
               id="email"
               label="Email"
-              placeHolder="Email"
-              type="text"
+              placeHolder="exemplo@dominio.com"
+              type="email"
               initialValue={patient.email}
               editable={editing}
               onChange={(e) => updateField("email", e.target.value)}
@@ -112,7 +112,7 @@ function PatientInformations({ patient, editing }: Props) {
             <FormInput
               id="occupation"
               label="Ocupação"
-              placeHolder="Ocupação"
+              placeHolder="Ex: Engenheiro(a)"
               type="text"
               initialValue={patient.occupation}
               editable={editing}
@@ -121,47 +121,47 @@ function PatientInformations({ patient, editing }: Props) {
             <FormInput
               id="telephone"
               label="Telefone"
-              placeHolder="+5551999999999"
-              type="text"
+              placeHolder="(00) 99999-9999"
+              type="tel"
               initialValue={patient.telephone}
               editable={editing}
               onChange={(e) => updateField("telephone", e.target.value)}
             />
           </div>
 
-          <div className="flex flex-col gap-3 w-full">
+          <div className="flex flex-col gap-6 w-full">
             <FormInput
               id="cpf"
               label="CPF"
-              placeHolder="CPF"
+              placeHolder="000.000.000-00"
               type="text"
               initialValue={patient.cpf}
               editable={editing}
               onChange={(e) => updateField("cpf", e.target.value)}
             />
 
-            <div className="flex flex-col gap-0.5">
-              <label htmlFor="origin" className={`${!editing && "text-gray"}`}>
+            <div className={`flex flex-col gap-1 w-full ${!editing ? "text-gray-500" : "text-foreground"}`}>
+              <label htmlFor="origin" className="text-sm font-medium">
                 Origem
               </label>
               {editing ? (
                 <select
                   name="origin"
                   id="origin"
-                  className="border py-2 px-1 rounded-md border-background-contrast bg-background"
+                  className="w-full py-2 px-3 rounded-lg text-sm bg-background-standard border border-background-contrast focus:border-color-blue focus:ring-1 focus:ring-color-blue transition duration-150"
                   value={origin}
                   onChange={(e) => {
                     setOrigin(e.target.value)
                     e.target.value != "Outro" && updateField("origin", e.target.value)
                   }}
                 >
-                  <option value="" disabled hidden>Selecione...</option>
+                  <option value="" disabled>Selecione...</option>
                   {optionsOrigin.map((o) => (
                     <option value={o} key={o}>{o}</option>
                   ))}
                 </select>
               ) : (
-                <p className="border p-2 border-input rounded-md border-background-contrast text-gray">
+                <p className="py-2 px-3 rounded-lg text-sm bg-background-contrast/50 border border-transparent text-gray-500 cursor-default">
                   {origin || 'Não informado'}
                 </p>
               )}
@@ -170,8 +170,8 @@ function PatientInformations({ patient, editing }: Props) {
             {origin === 'Outro' && (
               <FormInput
                 id="otherOrigin"
-                label="Outro"
-                placeHolder="Como conheceu"
+                label="Qual a origem?"
+                placeHolder="Ex: Conheceu no evento X"
                 type="text"
                 initialValue={otherOriginValue}
                 editable={editing}
@@ -179,12 +179,12 @@ function PatientInformations({ patient, editing }: Props) {
               />
             )}
 
-            <div className="flex flex-col gap-0.5">
-              <label className={`${!editing && "text-gray"}`}>Recorrência</label>
+            <div className={`flex flex-col gap-1 w-full ${!editing ? "text-gray-500" : "text-foreground"}`}>
+              <label className="text-sm font-medium">Recorrência</label>
               {editing ? (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 py-1">
                   {recurrences.map((r) => (
-                    <label key={r} className="flex items-center gap-1 cursor-pointer">
+                    <label key={r} className="flex items-center gap-2 cursor-pointer transition duration-150 hover:text-color-blue">
                       <input
                         type="radio"
                         name="recurrence"
@@ -195,45 +195,48 @@ function PatientInformations({ patient, editing }: Props) {
                           setRecurrence(e.target.value)
                           updateField("recurrence", recurrenceMapToEnglish[e.target.value as keyof typeof recurrenceMapToEnglish])
                         }}
+                        className="form-radio h-4 w-4 text-color-blue border-background-contrast focus:ring-color-blue"
                       />
-                      <span>{r}</span>
+                      <span className="text-sm">{r}</span>
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="border p-2 rounded-md border-background-contrast text-gray">
+                <p className="py-2 px-3 rounded-lg text-sm bg-background-contrast/50 border border-transparent text-gray-500 cursor-default">
                   {recurrence || 'Não informada'}
                 </p>
               )}
-              {editing && (
-                <div className="flex justify-end w-full mt-5">
-                  <div className="relative">
-                    <input
-                      disabled={isLoading}
-                      value={isLoading ? "" : "Salvar"}
-                      type="button"
-                      className="bg-ligth-green text-white font-medium w-30 py-2 rounded-md cursor-pointer hover:opacity-90 transition"
-                      onClick={updateDataPatient}
-                    />
-
-                    {isLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <ScaleLoader
-                          color="var(--foreground)"
-                          height={20}
-                          width={4}
-                          radius={2}
-                          margin={2}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {editing && (
+              <div className="flex justify-end w-full pt-4">
+                <div className="relative w-40">
+                  <input
+                    disabled={isLoading}
+                    value={isLoading ? "" : "Salvar Alterações"}
+                    type="button"
+                    className={`
+                      w-full py-2 px-4 rounded-lg font-semibold transition duration-200 shadow-md bg-green text-white cursor-pointer hover:bg-green/90
+                    `}
+                    onClick={updateDataPatient}
+                  />
+
+                  {isLoading && (
+                    <div className="absolute inset-0 flex z-10 items-center justify-center">
+                      <ScaleLoader
+                        color="white"
+                        height={20}
+                        width={4}
+                        radius={2}
+                        margin={2}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
       </div>
     </div >
   )

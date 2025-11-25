@@ -24,19 +24,21 @@ export const ContinuousCalendar = () => {
   const { getPatients } = usePatientAPI();
   const { getApponitments } = useAppontimentAPI();
 
+  const colors = ["text-indigo-600", "text-teal-600", "text-pink-600", "text-lime-600", "text-red-600", "text-violet-600", "text-yellow-600", "text-blue-600", "text-rose-600"];
+
+  const fetchPatients = async () => {
+    const { data, error } = await getPatients();
+    if (!error) setPartientsData(data);
+  }
+  const fetchAppointments = async () => {
+    const { data, error } = await getApponitments();
+    if (!error) setAppointments(data);
+  }
+
   useEffect(() => {
-    const fetchPatients = async () => {
-      const { data, error } = await getPatients();
-      if (!error) setPartientsData(data);
-    }
-    const fetchAppointments = async () => {
-      const { data, error } = await getApponitments();
-      if (!error) setAppointments(data);
-    }
     fetchAppointments();
     fetchPatients();
   }, [])
-
 
   const scrollToDay = (monthIndex: number, dayIndex: number) => {
     const targetDayIndex = dayRefs.current.findIndex(
@@ -76,8 +78,6 @@ export const ContinuousCalendar = () => {
     }, 50);
   };
 
-
-
   useEffect(() => {
     setTimeout(() => {
       scrollToDay(today.getMonth(), today.getDate());
@@ -90,6 +90,33 @@ export const ContinuousCalendar = () => {
       sequentialIndex: index,
     }));
   }, [appointments]);
+
+  const handleDeleteAppointment = (deletedAppointmentId: string) => {
+    setSelectedAppointment(null);
+    setIsModalUpdateOpen(false);
+
+    setAppointments(currentAppointments => 
+        currentAppointments.filter(appointment => appointment.appointmentId !== deletedAppointmentId)
+    );
+
+    setSelectedDay(prevSelectedDay => {
+        if (!prevSelectedDay) {
+            return null;
+        }
+        const updatedAppointments = prevSelectedDay.appointments.filter(
+            appointment => appointment.appointmentId !== deletedAppointmentId
+        );
+
+        if (updatedAppointments.length === 0) {
+            return null;
+        }
+        
+        return {
+            ...prevSelectedDay,
+            appointments: updatedAppointments,
+        };
+    });
+  };
 
   const generateCalendar = useMemo(() => {
     const today = new Date();
@@ -140,15 +167,23 @@ export const ContinuousCalendar = () => {
           const index = weekIndex * 7 + dayIndex;
           const isNewMonth =
             index === 0 || calendarDays[index - 1].month !== month;
+          const isCurrentMonth = month !== -1;
           const isToday =
             today.getMonth() === month &&
             today.getDate() === day &&
             today.getFullYear() === year;
-          const isMonth =
+          const isThisMonth =
             today.getMonth() === month &&
             today.getFullYear() === year;
 
-
+          if (month === -1) {
+            return (
+              <div
+                key={`${month}-${day}`}
+                className={`relative w-full size-40 m-0.5 border border-transparent bg-gray-50/10 rounded-xl`}
+              />
+            )
+          }
 
           return (
             <div
@@ -156,7 +191,12 @@ export const ContinuousCalendar = () => {
               ref={(el) => { dayRefs.current[index] = el; }}
               data-month={month}
               data-day={day}
-              className={`relative z-10 m-[-0.5px] w-full cursor-pointer rounded-xl font-medium hover:bg-background-standard size-40 border border-green`}
+              className={`relative z-10 w-full min-h-40 max-h-40 overflow-hidden cursor-pointer font-medium m-0.5 shadow-sm transition-all duration-150 
+                ${isToday 
+                  ? 'bg-background-contrast border-ligth-green ring-2 ring-ligth-green/50' 
+                  : 'bg-background hover:bg-background-contrast border-calendar'}
+                rounded-xl text-sm border
+              `}
               onClick={() =>
                 setSelectedDay({
                   date: new Date(year, month, day),
@@ -165,29 +205,39 @@ export const ContinuousCalendar = () => {
               }
             >
               <span
-                className={`absolute left-1 top-1 flex size-5 items-center justify-center rounded-full text-xs sm:size-6 sm:text-sm lg:left-2 lg:top-2 lg:size-8 lg:text-base ${isMonth && 'bg-background-contrast'} ${isToday && 'bg-ligth-green font-semibold'}`}
+                className={`absolute left-2 top-2 flex size-7 items-center justify-center rounded-full text-sm font-semibold 
+                  ${isToday 
+                    ? 'bg-ligth-green text-white' 
+                    : isThisMonth 
+                      ? 'text-foreground' 
+                      : 'text-gray'}
+                `}
               >
                 {day}
               </span>
 
               {isNewMonth && (
-                <span className="absolute bottom-2 px-1.5 font-semibold -mb-1 text-xl">
+                <span className={`absolute bottom-2 left-2 px-1.5 font-bold text-2xl text-foreground opacity-90 ${isToday && 'text-ligth-green'}`}>
                   {monthNames[month]}
                 </span>
               )}
-              <div className='flex flex-col mt-12'>
+
+              <div className='flex flex-col mt-10 p-2'>
                 {appointmentsInDay.length > 0 && appointmentsInDay.slice(0, 2).map((a) => {
-                  const colors = ["bg-ligth-green", "bg-dark-green", "bg-green"];
-                  const bgClass = colors[a.sequentialIndex % 3];
+                  const colorClass = colors[a.sequentialIndex % colors.length];
                   return (
-                    <span className={`top-10 left-2 px-1.5 ${bgClass} font-semibold text-sm`} key={a.appointmentId}>
-                      {a.name.slice(0, 20)}{a.name.length > 20 && "..."}
-                    </span>
+                    <div className="flex items-center gap-1 overflow-hidden" key={a.appointmentId}>
+                      <span className={`font-semibold text-xs ${colorClass} truncate`}>
+                        {a.name.slice(0, 18)}{a.name.length > 18 && "..."}
+                      </span>
+                    </div>
                   )
                 })}
-                {appointmentsInDay.length > 2 && <span className={`top-10 left-2 px-1.5 bg-green font-semibold text-sm`}>
-                  + {appointmentsInDay.length - 2}
-                </span>}
+                {appointmentsInDay.length > 2 && 
+                  <span className="text-xs font-semibold text-gray">
+                    + {appointmentsInDay.length - 2} Agendamentos
+                  </span>
+                }
               </div>
             </div>
           );
@@ -195,58 +245,61 @@ export const ContinuousCalendar = () => {
         }
       </div >
     ));
-  }, [year, appointments]);
+  }, [year, appointments, indexedAppointments]);
 
   return (
-    <div className="flex flex-col h-full max-h-full rounded-t-2xl bg-background pb-10 shadow-xl">
-      <div className="sticky z-20 w-full rounded-t-2xl bg-background pt-7 px-8">
-        <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-6">
-          <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col h-full rounded-t-2xl bg-background pb-6 shadow-2xl border border-background-contrast max-w-7xl mx-auto">
+      
+      <div className="sticky top-0 z-20 w-full rounded-t-2xl bg-background pt-6 px-8 border-b border-background-contrast shadow-sm">
+        <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-4">
+          
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={handleTodayClick}
               type="button"
-              className="rounded-lg bg-ligth-green px-3 py-1.5 text-sm font-medium cursor-pointer"
+              className="rounded-xl bg-background-contrast px-4 py-2 text-sm font-semibold cursor-pointer text-foreground hover:bg-background-contrast/70 transition"
             >
               Hoje
             </button>
 
             <button
               type="button"
-              className="whitespace-nowrap rounded-lg px-3 py-1.5 text-center text-sm font-medium bg-green cursor-pointer"
+              className="whitespace-nowrap rounded-xl px-4 py-2 text-center text-sm font-semibold bg-ligth-green cursor-pointer text-white shadow-md hover:bg-green transition"
               onClick={() => setIsModalOpen(true)}
             >
-              + Adicionar evento
+              + Adicionar Evento
             </button>
           </div>
 
-          <div className="flex w-fit items-center justify-between">
-            <button onClick={handlePrevYear} className="rounded-full border p-2 cursor-pointer">
-              <FaArrowLeft />
+          <div className="flex w-fit items-center gap-4">
+            <button onClick={handlePrevYear} className="rounded-full border border-calendar p-2 text-foreground hover:bg-background-contrast transition cursor-pointer">
+              <FaArrowLeft className='size-3' />
             </button>
 
-            <h1 className="min-w-16 text-center text-lg font-semibold">
+            <h1 className="min-w-16 text-center text-xl font-bold text-foreground">
               {year}
             </h1>
 
-            <button onClick={handleNextYear} className="rounded-full border p-2 cursor-pointer">
-              <FaArrowRight />
+            <button onClick={handleNextYear} className="rounded-full border border-calendar p-2 text-foreground hover:bg-background-contrast transition cursor-pointer">
+              <FaArrowRight className='size-3' />
             </button>
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-7 justify-between">
+        <div className="grid w-full grid-cols-7 justify-between pt-1">
           {daysOfWeek.map((day, index) => (
-            <div key={index} className="w-full border-b py-2 text-center font-semibold">
+            <div key={index} className="w-full py-2 text-center font-bold text-gray uppercase text-xs sm:text-sm">
               {day}
             </div>
           ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-5 max-h-[calc(100vh-18rem)] scroll-style calendar-container">
+      <div className="flex-1 overflow-y-auto px-5 scroll-style calendar-container max-h-[calc(100vh-18rem)]">
         {generateCalendar}
       </div>
-      <EventModal isOpen={isModalOpen} setIsOpen={() => setIsModalOpen(false)} patients={patientsData} />
+      
+      <EventModal isOpen={isModalOpen} setIsOpen={() => setIsModalOpen(false)} patients={patientsData} onSucess={() => fetchAppointments()}/>
       {selectedDay && (
         <DayCalendarModal
           isOpen={Boolean(selectedDay)}
@@ -258,7 +311,14 @@ export const ContinuousCalendar = () => {
         />
       )}
       {selectedAppointment && (
-        <AppointmentModal isOpen={isModalUpdateOpen} setIsOpen={() => setIsModalUpdateOpen(false)} patientId={selectedAppointment.patientId} content={selectedAppointment} appointments={appointments} />
+        <AppointmentModal 
+          isOpen={isModalUpdateOpen} 
+          setIsOpen={() => setIsModalUpdateOpen(false)} 
+          patientId={selectedAppointment.patientId} 
+          content={selectedAppointment} 
+          appointments={appointments} 
+          onDelete={() => handleDeleteAppointment(selectedAppointment.appointmentId)} 
+        />
       )}
     </div>
   );

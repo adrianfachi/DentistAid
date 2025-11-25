@@ -82,25 +82,28 @@ export default function Patients() {
 
   return (
     <Body activeNavBar="users">
-      <div>
-        <h1 className="text-2xl font-semibold">Dra. Natália Rossoni</h1>
+      <div className="p-4 md:p-8 w-full mx-auto">
+
+        <header className="mb-6 border-b pb-4">
+          <h1 className="text-3xl font-extrabold text-foreground">Dra. Natália Rossoni</h1>
+        </header>
 
         <SearchUser
           setIsOpenModal={() => setIsOpenModal(true)}
-          getDeletedPatients={getDeletedPatientsHandler}
           showDeleted={showDeleted}
+          getDeletedPatients={getDeletedPatientsHandler}
           setFilter={setFilter}
         />
 
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap mt-6 gap-x-4 gap-y-8 justify-start">
           {isLoading ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center w-full h-64">
               <ScaleLoader
-                color="var(--foreground)"
-                height={20}
-                width={4}
+                color="var(--color-blue)"
+                height={30}
+                width={5}
                 radius={2}
-                margin={2}
+                margin={3}
               />
             </div>
           ) : filteredPatients.length > 0 ? (
@@ -112,10 +115,11 @@ export default function Patients() {
               />
             ))
           ) : (
-            <div className="flex justify-center items-center h-full">
-              <p>Nenhum paciente encontrado</p>
+            <div className="flex justify-center items-center w-full h-64">
+              <p className="text-lg text-gray-500">Nenhum paciente encontrado</p>
             </div>
           )}
+
         </div>
 
         <NewPatientModal

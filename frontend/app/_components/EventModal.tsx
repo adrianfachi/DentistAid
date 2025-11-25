@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { MdClose } from 'react-icons/md'
@@ -13,6 +13,7 @@ type Props = {
   isOpen: boolean
   setIsOpen: () => void
   patients: patientType[];
+  onSucess: () => void;
 }
 
 type FormType = {
@@ -23,7 +24,7 @@ type FormType = {
   endsAt: string;
 }
 
-function EventModal({ isOpen, setIsOpen, patients }: Props) {
+function EventModal({ isOpen, setIsOpen, patients, onSucess }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { createAppointment } = useAppontimentAPI()
 
@@ -68,11 +69,14 @@ function EventModal({ isOpen, setIsOpen, patients }: Props) {
       const { error } = await createAppointment(body);
 
       if (error) {
-        toast.error("Erro ao criar consulta");
+        let messageError = ""
+        error == "Error: appointment already scheduled at this time." ? messageError = "Já existe uma consulta nesse horário" : "Erro ao criar consulta"
+        toast.error(messageError, { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
       } else {
-        toast.success("Consulta criada com sucesso!");
+        toast.success("Consulta criada com sucesso!", { style: { backgroundColor: "var(--background)", color: "var(--foreground)" } })
         reset();
         setIsOpen();
+        onSucess();
       }
 
     } catch (error) {

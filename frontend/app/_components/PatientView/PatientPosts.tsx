@@ -8,51 +8,86 @@ type Props = {
 }
 
 function PatientPosts({ posts }: Props) {
-  const [updatePostModal, setUpdatePostModal] = useState<boolean>(false)
-  const [postUpdate, setPostUpdate] = useState<postType>();
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [selectedPost, setSelectedPost] = useState<postType | null>(null);
+
+  const handleEditClick = (post: postType) => {
+    setSelectedPost(post);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setSelectedPost(null); 
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedPost(null);
+  };
+
   return (
-    <div className='w-full'>
-      <h3 className="text-lg font-semibold mb-3">Postagens</h3>
+    <div className='w-full p-4 bg-background rounded-xl shadow-lg border border-background-contrast/50'>
+      <div className="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 className="text-xl font-bold text-foreground">Postagens</h3>
+      </div>
+      
       {posts && posts.length !== 0 ? (
-        <div className='flex gap-4 flex-col py-5 px-2 shadow-blue-soft rounded-xl min-w-fit scroll-style overflow-auto' style={{ height: '200px' }}>
-          <table className="w-full">
+        <div className='py-1 overflow-auto scroll-style' style={{ maxHeight: '300px' }}>
+          <table className="w-full border-collapse">
             <thead>
-              <tr>
-                <th className="w-2/3 pb-2 flex">Conteúdo</th>
-                <th className="w-1/6 pb-2">Data de criação</th>
-                <th className="w-1/6 pb-2">Última edição</th>
+              <tr className="sticky top-0 bg-background-standard/95 border-b border-background-contrast text-left text-gray text-sm uppercase">
+                <th className="w-2/3 py-2 px-3 font-medium">Conteúdo</th>
+                <th className="w-1/6 py-2 px-1 font-medium text-center whitespace-nowrap">Criação</th>
+                <th className="w-1/6 py-2 px-1 font-medium text-center whitespace-nowrap">Última Edição</th>
               </tr>
             </thead>
             <tbody>
               {posts
-                .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
-                .map((post, index) => (
-                  <tr key={index} className="border-t border-gray-200 cursor-pointer" onClick={() => {
-                    setUpdatePostModal(true)
-                    setPostUpdate(post)
-                  }}
+                .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                .map((post) => (
+                  <tr 
+                    key={post.postId} 
+                    className="border-t border-background-contrast cursor-pointer transition duration-100 hover:bg-background-contrast/50" 
+                    onClick={() => handleEditClick(post)}
                   >
-                    <td className="py-2 pr-2">
-                      <p className="text-sm break-all">
-                        {post.content?.substring(0, 120)}
-                        {post.content && post.content.length > 120 && "..."}
+                    <td className="py-3 px-3">
+                      <p className="text-sm text-foreground break-all">
+                        {post.content ? (
+                          <>
+                            {post.content.substring(0, 100)}
+                            {post.content.length > 100 && "..."}
+                          </>
+                        ) : (
+                          <span className="italic text-gray">Sem conteúdo</span>
+                        )}
                       </p>
                     </td>
-                    <td className="py-2 text-sm text-center">
-                      {post.createdAt && new Date(post.createdAt).toLocaleDateString("pt-br")}
+                    <td className="py-3 text-sm text-center text-gray whitespace-nowrap">
+                      {new Date(post.createdAt).toLocaleDateString("pt-br")}
                     </td>
-                    <td className="py-2 text-sm text-center">
-                      {post.updatedAt && new Date(post.updatedAt).toLocaleDateString("pt-br")}
+                    <td className="py-3 text-sm text-center text-gray whitespace-nowrap">
+                      {new Date(post.updatedAt).toLocaleDateString("pt-br")}
                     </td>
                   </tr>
                 ))}
             </tbody>
           </table>
-          <PostModal isOpen={updatePostModal} setIsOpen={() => setUpdatePostModal(false)} content={postUpdate?.content} image={postUpdate?.image} update={true} id={postUpdate?.postId} />
         </div>
       ) : (
-        <p>Nenhuma postagem encontrada</p>
+        <div className="text-center py-10 border border-dashed border-gray/50 rounded-lg">
+          <p className="text-gray italic">Nenhuma postagem encontrada.</p>
+        </div>
       )}
+      
+      <PostModal 
+        isOpen={isModalOpen} 
+        setIsOpen={closeModal} 
+        content={selectedPost?.content} 
+        image={selectedPost?.image} 
+        update={!!selectedPost}
+        id={selectedPost?.postId}
+      />
     </div>
   )
 }

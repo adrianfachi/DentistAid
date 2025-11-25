@@ -18,13 +18,25 @@ export class AppointmentRepository {
     }
     
     fetchAllAppointmentsOnDate(date: Date): Promise<Appointment[] | null> {
-        const appointments = this.databaseService.appointment.findMany({
-            where: { date, cancelledAt: null },
-        });
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
 
-        if(appointments === undefined) throw new InternalServerErrorException("Database Error: Unable to fetch appointments on date.");
-        return appointments;
-    }
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(startOfDay.getDate() + 1);
+
+      const appointments = this.databaseService.appointment.findMany({
+          where: {
+              startsAt: {
+                  gte: startOfDay,
+                  lt: endOfDay,
+              },
+              cancelledAt: null,
+          },
+      });
+
+      if(appointments === undefined) throw new InternalServerErrorException("Database Error: Unable to fetch appointments on date.");
+      return appointments;
+  }
 
     fetchAppointmentById(appointmentId: string): Promise<Appointment | null> {
         const appointment = this.databaseService.appointment.findUnique({
